@@ -45,7 +45,7 @@ interface PackageItem {
     imageUrl: string
     altText?: string
   } | null
-  _count: {
+  _count?: {
     packageBookings: number
     packageSessions: number
   }
@@ -292,13 +292,13 @@ export default function PackagesPage() {
                     <div className="bg-gray-50 p-3 rounded-lg">
                       <p className="text-sm text-gray-600 font-medium">Reservaciones</p>
                       <p className="text-lg font-bold text-gray-900">
-                        {pkg._count.packageBookings}
+                        {pkg._count?.packageBookings || 0}
                       </p>
                     </div>
                     <div className="bg-purple-50 p-3 rounded-lg">
                       <p className="text-sm text-purple-600 font-medium">Sesiones</p>
                       <p className="text-lg font-bold text-purple-900">
-                        {pkg._count.packageSessions}
+                        {pkg._count?.packageSessions || 0}
                       </p>
                     </div>
                   </div>

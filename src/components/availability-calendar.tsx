@@ -14,8 +14,11 @@ import {
 import { formatDateForDB } from '@/lib/date-utils'
 
 interface AvailabilityCalendarProps {
-  roomTypeId: string
-  onDateRangeSelect: (checkIn: string, checkOut: string) => void
+  roomTypeId?: string
+  packageId?: string
+  participants?: number
+  mode?: 'accommodation' | 'package'
+  onDateRangeSelect: (checkIn: string, checkOut?: string) => void
   selectedCheckIn?: string
   selectedCheckOut?: string
   minNights?: number
@@ -28,6 +31,9 @@ interface DateAvailability {
 
 export function AvailabilityCalendar({
   roomTypeId,
+  packageId,
+  participants = 1,
+  mode = 'accommodation',
   onDateRangeSelect,
   selectedCheckIn,
   selectedCheckOut,
@@ -41,10 +47,10 @@ export function AvailabilityCalendar({
   const [tempCheckIn, setTempCheckIn] = useState<string | null>(null)
 
   useEffect(() => {
-    if (roomTypeId) {
+    if ((mode === 'accommodation' && roomTypeId) || (mode === 'package' && packageId)) {
       fetchAvailability()
     }
-  }, [roomTypeId, currentMonth])
+  }, [roomTypeId, packageId, mode, currentMonth, participants])
 
   const fetchAvailability = async () => {
     setLoading(true)
@@ -53,24 +59,56 @@ export function AvailabilityCalendar({
       const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
       const endOfNextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 2, 0)
 
-      const params = new URLSearchParams({
-        roomTypeId,
+      console.log(`📅 Fetching ${mode} availability for:`, {
         startDate: formatDateForDB(startOfMonth),
         endDate: formatDateForDB(endOfNextMonth),
-      })
-      
-      console.log('📅 Fetching availability for:', {
-        startDate: formatDateForDB(startOfMonth),
-        endDate: formatDateForDB(endOfNextMonth)
+        roomTypeId,
+        packageId,
+        participants
       })
 
-      const response = await fetch(`/api/availability?${params}`)
-      if (response.ok) {
-        const data = await response.json()
-        console.log('📊 Received availability data:', data.dateAvailability)
-        setAvailability(data.dateAvailability || {})
-      } else {
-        console.error('❌ Error fetching availability:', response.status)
+      if (mode === 'package' && packageId) {
+        // Para paquetes, usar nueva API optimizada que verifica el rango completo
+        try {
+          const response = await fetch(`/api/packages/${packageId}/availability/range`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              startDate: formatDateForDB(startOfMonth),
+              endDate: formatDateForDB(endOfNextMonth),
+              participants
+            })
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            console.log('📦 Package availability data (optimized):', data.availability)
+            setAvailability(data.availability || {})
+          } else {
+            console.error('❌ Error fetching package availability range:', response.status)
+            setAvailability({})
+          }
+        } catch (error) {
+          console.error('💥 Error fetching package availability range:', error)
+          setAvailability({})
+        }
+        
+      } else if (mode === 'accommodation' && roomTypeId) {
+        // Modo accommodation (lógica original)
+        const params = new URLSearchParams({
+          roomTypeId,
+          startDate: formatDateForDB(startOfMonth),
+          endDate: formatDateForDB(endOfNextMonth),
+        })
+
+        const response = await fetch(`/api/availability?${params}`)
+        if (response.ok) {
+          const data = await response.json()
+          console.log('🏨 Received accommodation availability data:', data.dateAvailability)
+          setAvailability(data.dateAvailability || {})
+        } else {
+          console.error('❌ Error fetching accommodation availability:', response.status)
+        }
       }
     } catch (error) {
       console.error('Error fetching availability:', error)
@@ -156,13 +194,21 @@ export function AvailabilityCalendar({
   }
 
   const handleDateClick = (dateString: string, isCurrentMonth: boolean) => {
-    console.log('🗓️ Date clicked:', dateString, 'isCurrentMonth:', isCurrentMonth)
+    console.log(`🗓️ Date clicked (${mode} mode):`, dateString, 'isCurrentMonth:', isCurrentMonth)
     
     if (!isCurrentMonth || !isDateAvailable(dateString)) {
       console.log('❌ Date not selectable')
       return
     }
 
+    if (mode === 'package') {
+      // Modo paquete: solo selecciona fecha de inicio
+      console.log('📦 Package mode - selecting start date:', dateString)
+      onDateRangeSelect(dateString) // Solo pasa la fecha de inicio
+      return
+    }
+
+    // Modo accommodation (lógica original)
     // Si hay fechas ya seleccionadas y se hace clic en una de ellas, deseleccionar
     if ((dateString === selectedCheckIn || dateString === selectedCheckOut) && !selectingCheckOut) {
       console.log('🔄 Deselecting current range')
@@ -415,7 +461,21 @@ export function AvailabilityCalendar({
 
         {/* Instrucciones */}
         <div className="mt-4 text-center">
-          {!selectingCheckOut && !selectedCheckIn && !selectedCheckOut ? (
+          {mode === 'package' ? (
+            <div className="text-sm text-gray-600">
+              <p className="mb-1">
+                📦 Selecciona la <strong>fecha de inicio</strong> del paquete
+              </p>
+              <p className="text-xs text-purple-600">
+                💡 El paquete incluye hoteles y actividades programadas automáticamente
+              </p>
+              {selectedCheckIn && (
+                <p className="text-sm text-purple-700 mt-2 font-medium">
+                  ✅ Fecha seleccionada: <strong>{selectedCheckIn}</strong>
+                </p>
+              )}
+            </div>
+          ) : !selectingCheckOut && !selectedCheckIn && !selectedCheckOut ? (
             <p className="text-sm text-gray-600">
               Selecciona la fecha de <strong>check-in</strong>
             </p>

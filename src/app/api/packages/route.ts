@@ -25,9 +25,12 @@ export async function GET(request: NextRequest) {
     // Construir filtros
     const where: any = {}
     
-    if (active === 'true') {
-      where.isActive = true
+    if (active === 'false') {
+      where.active = false
+    } else if (active === 'true') {
+      where.active = true
     }
+    // Si active no se especifica o es diferente, no filtramos por active
 
     if (search) {
       where.OR = [
@@ -38,7 +41,8 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Fetching packages with filters:', { page, limit, active, search, where })
 
-    // Obtener paquetes con información relacionada
+    // Obtener paquetes con información relacionada (consulta simplificada para debug)
+    console.log('📦 Starting database query...')
     const [packages, totalCount] = await Promise.all([
       prisma.package.findMany({
         where,
@@ -47,12 +51,14 @@ export async function GET(request: NextRequest) {
             include: {
               hotel: {
                 select: {
+                  id: true,
                   name: true,
                   city: true
                 }
               },
               roomType: {
                 select: {
+                  id: true,
                   name: true
                 }
               }
@@ -62,6 +68,7 @@ export async function GET(request: NextRequest) {
             include: {
               activity: {
                 select: {
+                  id: true,
                   name: true,
                   durationHours: true
                 }
@@ -82,7 +89,11 @@ export async function GET(request: NextRequest) {
       prisma.package.count({ where })
     ])
 
+    console.log('📦 Database query completed. Found packages:', packages.length)
+    console.log('📦 Total count:', totalCount)
+
     // Obtener imágenes principales para cada paquete
+    console.log('🖼️ Fetching primary images...')
     const packagesWithImages = await Promise.all(
       packages.map(async (pkg) => {
         const primaryImage = await prisma.entityImage.findFirst({
@@ -104,28 +115,58 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    // Serializar BigInt y Decimal
+    console.log('🖼️ Images fetched. Packages with images:', packagesWithImages.length)
+
+    // Serializar BigInt y Decimal (simplificado para debug)
+    console.log('🔄 Starting serialization...')
     const serializedPackages = packagesWithImages.map(pkg => ({
-      ...pkg,
       id: pkg.id.toString(),
+      name: pkg.name,
+      description: pkg.description,
+      shortDescription: pkg.shortDescription,
+      durationDays: pkg.durationDays,
+      durationNights: pkg.durationNights,
+      minParticipants: pkg.minParticipants,
+      maxParticipants: pkg.maxParticipants,
       basePrice: pkg.basePrice.toString(),
+      currency: pkg.currency,
+      capacity: pkg.capacity,
+      active: pkg.active,
       createdAt: pkg.createdAt.toISOString(),
       updatedAt: pkg.updatedAt.toISOString(),
       packageHotels: pkg.packageHotels.map(ph => ({
-        ...ph,
         id: ph.id.toString(),
         packageId: ph.packageId.toString(),
         hotelId: ph.hotelId.toString(),
         roomTypeId: ph.roomTypeId.toString(),
+        nights: ph.nights,
+        checkInDay: ph.checkInDay,
         createdAt: ph.createdAt.toISOString(),
+        hotel: {
+          id: ph.hotel.id.toString(),
+          name: ph.hotel.name,
+          city: ph.hotel.city
+        },
+        roomType: {
+          id: ph.roomType.id.toString(),
+          name: ph.roomType.name
+        }
       })),
       packageActivities: pkg.packageActivities.map(pa => ({
-        ...pa,
         id: pa.id.toString(),
         packageId: pa.packageId.toString(),
         activityId: pa.activityId.toString(),
+        dayNumber: pa.dayNumber,
+        participantsIncluded: pa.participantsIncluded,
         createdAt: pa.createdAt.toISOString(),
+        activity: {
+          id: pa.activity.id.toString(),
+          name: pa.activity.name,
+          durationHours: pa.activity.durationHours
+        }
       })),
+      primaryImage: pkg.primaryImage,
+      _count: pkg._count
     }))
 
     console.log('📦 Found packages:', serializedPackages.length)

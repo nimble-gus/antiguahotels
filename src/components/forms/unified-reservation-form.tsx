@@ -75,6 +75,54 @@ interface ActivitySchedule {
   }
 }
 
+interface Package {
+  id: string
+  name: string
+  description?: string
+  shortDescription?: string
+  durationDays: number
+  durationNights: number
+  minParticipants: number
+  maxParticipants?: number
+  basePrice: string
+  currency: string
+  capacity?: number
+  active: boolean
+  packageHotels: PackageHotel[]
+  packageActivities: PackageActivity[]
+  primaryImage?: {
+    id: string
+    imageUrl: string
+    altText?: string
+  } | null
+}
+
+interface PackageHotel {
+  id: string
+  hotelId: string
+  roomTypeId: string
+  nights: number
+  checkInDay: number
+  hotel: {
+    name: string
+    city?: string
+  }
+  roomType: {
+    name: string
+  }
+}
+
+interface PackageActivity {
+  id: string
+  activityId: string
+  dayNumber: number
+  participantsIncluded?: number
+  activity: {
+    name: string
+    durationHours?: string
+  }
+}
+
 interface UnifiedReservationFormProps {
   onClose: () => void
   onSave: () => void
@@ -84,7 +132,7 @@ interface UnifiedReservationFormProps {
 export function UnifiedReservationForm({ onClose, onSave, reservation }: UnifiedReservationFormProps) {
   const [step, setStep] = useState(1) // 1: Tipo, 2: Huésped, 3: Servicio, 4: Confirmación
   const [loading, setLoading] = useState(false)
-  const [reservationType, setReservationType] = useState<'ACCOMMODATION' | 'ACTIVITY'>('ACCOMMODATION')
+  const [reservationType, setReservationType] = useState<'ACCOMMODATION' | 'ACTIVITY' | 'PACKAGE'>('ACCOMMODATION')
 
   // Estados comunes
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null)
@@ -127,6 +175,16 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
     emergencyPhone: '',
   })
 
+  // Estados para paquetes
+  const [packages, setPackages] = useState<Package[]>([])
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
+  const [packageData, setPackageData] = useState({
+    startDate: '',
+    participants: 1,
+    participantNames: '',
+    specialRequests: '',
+  })
+
   // Estados de disponibilidad
   const [availabilityStatus, setAvailabilityStatus] = useState<{
     available: boolean
@@ -140,8 +198,10 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
     fetchGuests()
     if (reservationType === 'ACCOMMODATION') {
       fetchHotels()
-    } else {
+    } else if (reservationType === 'ACTIVITY') {
       fetchActivities()
+    } else if (reservationType === 'PACKAGE') {
+      fetchPackages()
     }
   }, [reservationType])
 
@@ -222,6 +282,28 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
       }
     } catch (error) {
       console.error('Error fetching activities:', error)
+    }
+  }
+
+  const fetchPackages = async () => {
+    try {
+      console.log('📦 Fetching packages...')
+      const response = await fetch('/api/packages?limit=100')
+      console.log('📦 Response status:', response.status)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('📦 Full API response:', data)
+        console.log('✅ Packages loaded:', data.packages?.length || 0)
+        console.log('📦 Packages data:', data.packages)
+        setPackages(data.packages || [])
+      } else {
+        console.error('❌ Failed to fetch packages:', response.status, response.statusText)
+        const errorData = await response.json()
+        console.error('❌ Error details:', errorData)
+      }
+    } catch (error) {
+      console.error('💥 Error fetching packages:', error)
     }
   }
 
@@ -334,7 +416,7 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
     switch (step) {
       case 1: return 'Tipo de Reservación'
       case 2: return 'Seleccionar Huésped'
-      case 3: return reservationType === 'ACCOMMODATION' ? 'Hotel y Habitación' : 'Actividad y Horario'
+      case 3: return reservationType === 'ACCOMMODATION' ? 'Hotel y Habitación' : reservationType === 'ACTIVITY' ? 'Actividad y Horario' : 'Seleccionar Paquete'
       case 4: return 'Confirmación'
       default: return 'Reservación'
     }
@@ -374,7 +456,7 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                 <p className="text-gray-600">Selecciona el tipo de servicio</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card 
                   className={`cursor-pointer transition-all ${
                     reservationType === 'ACCOMMODATION' 
@@ -415,6 +497,30 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                       • Horarios específicos
                       • Control de cupos
                       • Experiencias únicas
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card 
+                  className={`cursor-pointer transition-all ${
+                    reservationType === 'PACKAGE' 
+                      ? 'ring-2 ring-purple-500 bg-purple-50' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => setReservationType('PACKAGE')}
+                >
+                  <CardContent className="p-6 text-center">
+                    <div className="h-16 w-16 text-purple-500 mx-auto mb-4 flex items-center justify-center">
+                      📦
+                    </div>
+                    <h4 className="text-xl font-semibold text-gray-900 mb-2">📦 Paquete</h4>
+                    <p className="text-gray-600">
+                      Paquetes completos con hoteles y actividades incluidas
+                    </p>
+                    <div className="mt-4 text-sm text-purple-600">
+                      • Precio fijo total
+                      • Hoteles incluidos
+                      • Actividades incluidas
                     </div>
                   </CardContent>
                 </Card>
@@ -983,6 +1089,221 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
             </div>
           )}
 
+          {/* Paso 3C: Seleccionar Paquete */}
+          {step === 3 && reservationType === 'PACKAGE' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">📦 Seleccionar Paquete Turístico</h3>
+                <div className="text-sm text-gray-600">
+                  Huésped: {selectedGuest?.firstName} {selectedGuest?.lastName}
+                </div>
+              </div>
+
+              {/* Lista de paquetes */}
+              <div className="space-y-4">
+                {(() => {
+                  console.log('🔍 Rendering packages step, packages state:', packages)
+                  console.log('🔍 Packages length:', packages.length)
+                  return null
+                })()}
+                {packages.length > 0 ? (
+                  <div className="grid gap-4">
+                    {packages.map((pkg) => (
+                      <Card 
+                        key={pkg.id}
+                        className={`cursor-pointer transition-all ${
+                          selectedPackage?.id === pkg.id 
+                            ? 'ring-2 ring-purple-500 bg-purple-50' 
+                            : 'hover:bg-gray-50 border-gray-200'
+                        }`}
+                        onClick={() => setSelectedPackage(pkg)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-start space-x-4">
+                            {/* Imagen del paquete */}
+                            <div className="flex-shrink-0">
+                              {pkg.primaryImage ? (
+                                <img 
+                                  src={pkg.primaryImage.imageUrl} 
+                                  alt={pkg.primaryImage.altText || pkg.name}
+                                  className="w-20 h-20 rounded-lg object-cover border border-gray-200"
+                                />
+                              ) : (
+                                <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                                  <div className="text-2xl">📦</div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Información del paquete */}
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h4 className="text-xl font-semibold text-gray-900 mb-2">{pkg.name}</h4>
+                                  <p className="text-gray-600 mb-3">{pkg.shortDescription}</p>
+                                  
+                                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                                    <div className="flex items-center">
+                                      <Calendar className="h-4 w-4 mr-1" />
+                                      {pkg.durationDays} días, {pkg.durationNights} noches
+                                    </div>
+                                    <div className="flex items-center">
+                                      <Users className="h-4 w-4 mr-1" />
+                                      Para {pkg.capacity || pkg.maxParticipants} personas exactas
+                                    </div>
+                                  </div>
+
+                                  {/* Hoteles incluidos */}
+                                  {pkg.packageHotels.length > 0 && (
+                                    <div className="mb-3">
+                                      <p className="text-sm font-medium text-gray-700 mb-1">🏨 Hoteles:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {pkg.packageHotels.map((ph) => (
+                                          <span key={ph.id} className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                            {ph.hotel.name} ({ph.roomType.name}) - {ph.nights}n
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Actividades incluidas */}
+                                  {pkg.packageActivities.length > 0 && (
+                                    <div className="mb-3">
+                                      <p className="text-sm font-medium text-gray-700 mb-1">🎯 Actividades:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {pkg.packageActivities.map((pa) => (
+                                          <span key={pa.id} className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                            {pa.activity.name} (Día {pa.dayNumber})
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Precio */}
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold text-purple-600">
+                                    {pkg.currency} ${pkg.basePrice}
+                                  </p>
+                                  <p className="text-sm text-gray-500">precio total</p>
+                                  {pkg.capacity && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      ≈ ${(parseFloat(pkg.basePrice) / pkg.capacity).toFixed(2)} por persona
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-4">📦</div>
+                    <p>No hay paquetes disponibles</p>
+                    <p className="text-sm mt-2">
+                      {packages.length === 0 ? 
+                        'No se cargaron paquetes desde la API' : 
+                        `Se encontraron ${packages.length} paquetes pero no se muestran`
+                      }
+                    </p>
+                    <p className="text-xs mt-1 text-gray-400">
+                      Verifica la consola del navegador para más detalles
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Detalles del paquete seleccionado */}
+              {selectedPackage && (
+                <div className="space-y-4 p-4 bg-purple-50 rounded-lg">
+                  <h4 className="font-medium text-purple-900">Detalles de la Reservación</h4>
+                  
+                  {/* Número de participantes primero */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-purple-700 mb-1">
+                      Número de Participantes *
+                    </label>
+                    <input
+                      type="number"
+                      value={packageData.participants}
+                      onChange={(e) => setPackageData({ 
+                        ...packageData, 
+                        participants: parseInt(e.target.value) || 1 
+                      })}
+                      min={selectedPackage.minParticipants}
+                      max={selectedPackage.capacity || selectedPackage.maxParticipants}
+                      className="w-full px-3 py-2 border border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                    />
+                    <p className="text-xs text-purple-600 mt-1">
+                      {selectedPackage.capacity ? 
+                        `Capacidad fija: ${selectedPackage.capacity} personas` :
+                        `Mín: ${selectedPackage.minParticipants}, Máx: ${selectedPackage.maxParticipants || '∞'}`
+                      }
+                    </p>
+                  </div>
+
+                  {/* Calendario inteligente de paquetes */}
+                  <div>
+                    <h5 className="text-sm font-medium text-purple-700 mb-3">
+                      📅 Selecciona la Fecha de Inicio del Paquete
+                    </h5>
+                    <AvailabilityCalendar
+                      mode="package"
+                      packageId={selectedPackage.id}
+                      participants={packageData.participants}
+                      selectedCheckIn={packageData.startDate}
+                      onDateRangeSelect={(startDate) => {
+                        console.log('📦 Package start date selected:', startDate)
+                        setPackageData({ ...packageData, startDate })
+                      }}
+                    />
+                    {packageData.startDate && (
+                      <div className="mt-3 p-3 bg-purple-100 rounded-lg">
+                        <p className="text-sm text-purple-800">
+                          <strong>Fecha de inicio:</strong> {formatDateForDisplay(packageData.startDate)}
+                        </p>
+                        <p className="text-xs text-purple-600 mt-1">
+                          El paquete durará {selectedPackage.durationDays} días desde esta fecha
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-purple-700 mb-1">
+                      Nombres de Participantes
+                    </label>
+                    <textarea
+                      value={packageData.participantNames}
+                      onChange={(e) => setPackageData({ ...packageData, participantNames: e.target.value })}
+                      placeholder="Nombres completos de todos los participantes (opcional)"
+                      rows={3}
+                      className="w-full px-3 py-2 border border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-purple-700 mb-1">
+                      Solicitudes Especiales
+                    </label>
+                    <textarea
+                      value={packageData.specialRequests}
+                      onChange={(e) => setPackageData({ ...packageData, specialRequests: e.target.value })}
+                      placeholder="Alergias alimentarias, necesidades especiales, etc..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Paso 4: Confirmación */}
           {step === 4 && (
             <div className="space-y-6">
@@ -1000,7 +1321,7 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
 
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      {reservationType === 'ACCOMMODATION' ? '🏨 Alojamiento' : '🎯 Actividad'}
+                      {reservationType === 'ACCOMMODATION' ? '🏨 Alojamiento' : reservationType === 'ACTIVITY' ? '🎯 Actividad' : '📦 Paquete'}
                     </h4>
                     {reservationType === 'ACCOMMODATION' ? (
                       <div>
@@ -1013,7 +1334,7 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                           {accommodationData.adults} adultos, {accommodationData.children} niños
                         </p>
                       </div>
-                    ) : (
+                    ) : reservationType === 'ACTIVITY' ? (
                       <div>
                         <p>{selectedActivity?.name}</p>
                         <p className="text-sm text-gray-600">{selectedActivity?.location}</p>
@@ -1023,6 +1344,22 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                         </p>
                         <p className="text-sm text-gray-600">
                           {activityData.participants} participantes
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p>{selectedPackage?.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {selectedPackage?.durationDays} días, {selectedPackage?.durationNights} noches
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Inicio: {packageData.startDate && formatDateForDisplay(packageData.startDate)}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {packageData.participants} participantes
+                        </p>
+                        <p className="text-lg font-bold text-purple-600 mt-2">
+                          {selectedPackage?.currency} ${selectedPackage?.basePrice}
                         </p>
                       </div>
                     )}
@@ -1050,7 +1387,8 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                 (step === 1 && !reservationType) ||
                 (step === 2 && !selectedGuest) ||
                 (step === 3 && reservationType === 'ACCOMMODATION' && (!accommodationData.checkInDate || !accommodationData.checkOutDate || !availabilityStatus?.available)) ||
-                (step === 3 && reservationType === 'ACTIVITY' && (!selectedActivity || !selectedSchedule))
+                (step === 3 && reservationType === 'ACTIVITY' && (!selectedActivity || !selectedSchedule)) ||
+                (step === 3 && reservationType === 'PACKAGE' && (!selectedPackage || !packageData.startDate))
               }
             >
               {loading ? 'Procesando...' : step === 4 ? 'Crear Reservación' : 'Siguiente'}
@@ -1084,13 +1422,19 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
             children: accommodationData.children,
             specialRequests: accommodationData.specialRequests,
             guestName: accommodationData.guestName,
-          } : {
+          } : reservationType === 'ACTIVITY' ? {
             activityId: selectedActivity?.id,
             scheduleId: selectedSchedule?.id,
             participants: activityData.participants,
             participantNames: activityData.participantNames,
             emergencyContact: activityData.emergencyContact,
             emergencyPhone: activityData.emergencyPhone,
+          } : {
+            packageId: selectedPackage?.id,
+            startDate: packageData.startDate,
+            participants: packageData.participants,
+            participantNames: packageData.participantNames,
+            specialRequests: packageData.specialRequests,
           })
         }),
       })
