@@ -22,9 +22,11 @@ import {
   XCircle,
   AlertCircle,
   Users,
-  X
+  X,
+  CreditCard
 } from 'lucide-react'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
+import { PaymentForm } from '@/components/forms/payment-form'
 
 interface Reservation {
   id: string
@@ -89,7 +91,9 @@ export default function ReservationsPage() {
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null)
+  const [paymentReservation, setPaymentReservation] = useState<Reservation | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
@@ -174,6 +178,11 @@ export default function ReservationsPage() {
     // TODO: Implementar modal de vista detallada
     console.log('👁️ Viewing reservation:', reservation.confirmationNumber)
     alert(`Vista detallada de ${reservation.confirmationNumber} - Por implementar`)
+  }
+
+  const handleAddPayment = (reservation: Reservation) => {
+    setPaymentReservation(reservation)
+    setShowPaymentForm(true)
   }
 
   // Mostrar loading mientras se autentica
@@ -329,9 +338,17 @@ export default function ReservationsPage() {
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(reservation.status)}
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(reservation.status)}`}>
-                        {reservation.status}
-                      </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(reservation.status)}`}>
+                          {reservation.status}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          reservation.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+                          reservation.paymentStatus === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          💳 {reservation.paymentStatus === 'PAID' ? 'Pagado' : 
+                               reservation.paymentStatus === 'PARTIAL' ? 'Parcial' : 'Pendiente'}
+                        </span>
                     </div>
                   </div>
 
@@ -416,6 +433,15 @@ export default function ReservationsPage() {
                     title="Ver detalles"
                   >
                     <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAddPayment(reservation)}
+                    title="Registrar pago"
+                    className="text-green-600 hover:text-green-700"
+                  >
+                    <CreditCard className="h-4 w-4" />
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -541,6 +567,45 @@ export default function ReservationsPage() {
                   fetchReservations()
                   setShowEditForm(false)
                   setEditingReservation(null)
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Formulario de registrar pago */}
+      {showPaymentForm && paymentReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  💳 Registrar Pago - {paymentReservation.confirmationNumber}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowPaymentForm(false)
+                    setPaymentReservation(null)
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="p-6">
+              <PaymentForm
+                reservationId={paymentReservation.id}
+                onClose={() => {
+                  setShowPaymentForm(false)
+                  setPaymentReservation(null)
+                }}
+                onSave={() => {
+                  fetchReservations() // Refresh reservations to show updated payment status
+                  setShowPaymentForm(false)
+                  setPaymentReservation(null)
                 }}
               />
             </div>

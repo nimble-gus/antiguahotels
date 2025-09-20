@@ -26,8 +26,10 @@ model AdminUser {
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  systemSettings SystemSetting[]
-  activityLogs   ActivityLog[]
+  systemSettings   SystemSetting[]
+  activityLogs     ActivityLog[]
+  notificationLogs NotificationLog[]
+  notificationQueue NotificationQueue[]
 
   @@map("admin_users")
 }
@@ -456,7 +458,9 @@ model Guest {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  reservations Reservation[]
+  reservations      Reservation[]
+  notificationLogs  NotificationLog[]
+  notificationQueue NotificationQueue[]
 
   @@map("guests")
 }
@@ -478,9 +482,11 @@ model Reservation {
   updatedAt           DateTime          @updatedAt @map("updated_at")
 
   // Relations
-  guest            Guest             @relation(fields: [guestId], references: [id], onDelete: Restrict)
-  reservationItems ReservationItem[]
-  payments         Payment[]
+  guest             Guest             @relation(fields: [guestId], references: [id], onDelete: Restrict)
+  reservationItems  ReservationItem[]
+  payments          Payment[]
+  notificationLogs  NotificationLog[]
+  notificationQueue NotificationQueue[]
 
   @@map("reservations")
 }
@@ -702,4 +708,108 @@ model ActivityLog {
   adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
 
   @@map("activity_logs")
+}
+
+// =========================================================
+// SISTEMA DE NOTIFICACIONES
+// =========================================================
+
+model NotificationSetting {
+  id            BigInt             @id @default(autoincrement())
+  type          NotificationType
+  eventType     String             @map("event_type") @db.VarChar(50)
+  isEnabled     Boolean            @default(true) @map("is_enabled")
+  recipientType NotificationRecipient @map("recipient_type")
+  templateName  String             @map("template_name") @db.VarChar(50)
+  delayMinutes  Int                @default(0) @map("delay_minutes")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  @@unique([type, eventType, recipientType], name: "unique_notification")
+  @@map("notification_settings")
+}
+
+model NotificationLog {
+  id             BigInt              @id @default(autoincrement())
+  type           NotificationType
+  eventType      String              @map("event_type") @db.VarChar(50)
+  recipientEmail String?             @map("recipient_email") @db.VarChar(255)
+  recipientPhone String?             @map("recipient_phone") @db.VarChar(20)
+  templateName   String              @map("template_name") @db.VarChar(50)
+  status         NotificationStatus  @default(PENDING)
+  providerId     String?             @map("provider_id") @db.VarChar(100)
+  errorMessage   String?             @map("error_message") @db.Text
+  sentAt         DateTime?           @map("sent_at")
+  openedAt       DateTime?           @map("opened_at")
+  clickedAt      DateTime?           @map("clicked_at")
+  reservationId  BigInt?             @map("reservation_id")
+  guestId        BigInt?             @map("guest_id")
+  adminUserId    BigInt?             @map("admin_user_id")
+  metadata       Json?
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  guest       Guest?       @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  adminUser   AdminUser?   @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@index([reservationId], name: "idx_reservation")
+  @@index([status], name: "idx_status")
+  @@index([eventType], name: "idx_event_type")
+  @@index([recipientEmail], name: "idx_recipient_email")
+  @@index([sentAt], name: "idx_sent_at")
+  @@map("notification_logs")
+}
+
+model NotificationQueue {
+  id            BigInt              @id @default(autoincrement())
+  type          NotificationType
+  eventType     String              @map("event_type") @db.VarChar(50)
+  recipientEmail String?            @map("recipient_email") @db.VarChar(255)
+  recipientPhone String?            @map("recipient_phone") @db.VarChar(20)
+  templateName  String              @map("template_name") @db.VarChar(50)
+  templateData  Json                @map("template_data")
+  scheduledFor  DateTime            @map("scheduled_for")
+  attempts      Int                 @default(0)
+  maxAttempts   Int                 @default(3) @map("max_attempts")
+  status        NotificationQueueStatus @default(PENDING)
+  errorMessage  String?             @map("error_message") @db.Text
+  reservationId BigInt?             @map("reservation_id")
+  guestId       BigInt?             @map("guest_id")
+  adminUserId   BigInt?             @map("admin_user_id")
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  guest       Guest?       @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  adminUser   AdminUser?   @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@index([scheduledFor, status], name: "idx_scheduled")
+  @@index([status], name: "idx_status")
+  @@index([reservationId], name: "idx_reservation")
+  @@map("notification_queue")
+}
+
+enum NotificationType {
+  EMAIL
+  SMS
+}
+
+enum NotificationRecipient {
+  GUEST
+  ADMIN
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+}
+
+enum NotificationQueueStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
 }

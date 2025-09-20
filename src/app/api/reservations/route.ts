@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { onReservationCreated } from '@/lib/notifications/triggers'
 import { createLocalDate, calculateNights, isValidDateRange } from '@/lib/date-utils'
 
 export async function GET(request: NextRequest) {
@@ -282,7 +283,10 @@ export async function POST(request: NextRequest) {
       participants,
       participantNames,
       emergencyContact,
-      emergencyPhone
+      emergencyPhone,
+      // Campos para paquetes
+      packageId,
+      startDate
     } = body
 
     // Validaciones básicas
@@ -305,6 +309,13 @@ export async function POST(request: NextRequest) {
       if (!activityId || !scheduleId || !participants) {
         return NextResponse.json(
           { error: 'Datos de actividad requeridos: actividad, horario y participantes' },
+          { status: 400 }
+        )
+      }
+    } else if (itemType === 'PACKAGE') {
+      if (!packageId || !startDate || !participants) {
+        return NextResponse.json(
+          { error: 'Datos de paquete requeridos: paquete, fecha de inicio y participantes' },
           { status: 400 }
         )
       }
@@ -337,7 +348,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Procesar según el tipo de reservación
+    console.log('🎯 RESERVATION TYPE SELECTED:', itemType)
+    
     if (itemType === 'ACCOMMODATION') {
+      console.log('🏨 Calling createAccommodationReservation...')
       return await createAccommodationReservation({
         guestId,
         hotelId,
@@ -362,6 +376,15 @@ export async function POST(request: NextRequest) {
         participantNames,
         emergencyContact,
         emergencyPhone
+      })
+    } else if (itemType === 'PACKAGE') {
+      return await createPackageReservation({
+        guestId,
+        packageId,
+        startDate,
+        participants,
+        participantNames,
+        specialRequests
       })
     } else {
       return NextResponse.json(
@@ -542,6 +565,24 @@ export async function POST(request: NextRequest) {
       }))
     } : null
 
+    console.log('🚀 ABOUT TO TRIGGER NOTIFICATIONS - Reservation created successfully')
+    console.log('📋 Reservation ID:', result.reservation.id.toString())
+    console.log('📧 Full reservation guest email:', fullReservation?.guest?.email)
+
+    // 🔔 Disparar notificaciones automáticas
+    try {
+      console.log('🔔 NOTIFICATION TRIGGER: Starting for reservation:', result.reservation.id.toString())
+      console.log('📧 Guest email:', fullReservation?.guest?.email || 'NO EMAIL FOUND')
+      console.log('📧 Confirmation number:', result.reservation.confirmationNumber)
+      
+      const triggerResult = await onReservationCreated(result.reservation.id)
+      console.log('✅ NOTIFICATION TRIGGER: Completed successfully', triggerResult)
+    } catch (notificationError) {
+      console.error('❌ NOTIFICATION TRIGGER: Failed with error:', notificationError)
+      console.error('❌ Error stack:', notificationError instanceof Error ? notificationError.stack : 'No stack')
+      // No fallar la reservación por errores de notificación
+    }
+
     return NextResponse.json({
       message: 'Reservación creada exitosamente',
       confirmationNumber,
@@ -710,6 +751,14 @@ async function createAccommodationReservation(data: {
   nights: number
 }) {
   try {
+    console.log('🏨 ACCOMMODATION RESERVATION: Function called with data:', {
+      guestId: data.guestId,
+      hotelId: data.hotelId,
+      roomTypeId: data.roomTypeId,
+      checkInDate: data.checkInDate,
+      checkOutDate: data.checkOutDate
+    })
+    
     // Obtener información del tipo de habitación
     const roomType = await prisma.roomType.findUnique({
       where: { id: BigInt(data.roomTypeId) },
@@ -944,6 +993,15 @@ async function createActivityReservation(data: {
       return reservation
     })
 
+    // 🔔 Disparar notificaciones automáticas
+    try {
+      console.log('📧 Triggering notification for activity reservation:', result.id.toString())
+      await onReservationCreated(result.id)
+    } catch (notificationError) {
+      console.error('❌ Error sending notifications:', notificationError)
+      // No fallar la reservación por errores de notificación
+    }
+
     return NextResponse.json({
       success: true,
       reservationId: result.id.toString(),
@@ -955,6 +1013,130 @@ async function createActivityReservation(data: {
     console.error('Error creating activity reservation:', error)
     return NextResponse.json(
       { error: 'Error creando reservación de actividad' },
+      { status: 500 }
+    )
+  }
+}
+
+// Función para crear reservación de paquete
+async function createPackageReservation(data: {
+  guestId: string
+  packageId: string
+  startDate: string
+  participants: number
+  participantNames?: string
+  specialRequests?: string
+}) {
+  try {
+    console.log('📦 Creating package reservation:', data)
+
+    // Obtener datos del paquete
+    const packageData = await prisma.package.findUnique({
+      where: { id: BigInt(data.packageId) },
+      include: {
+        packageHotels: {
+          include: {
+            hotel: true,
+            roomType: true
+          }
+        },
+        packageActivities: {
+          include: {
+            activity: true
+          }
+        }
+      }
+    })
+
+    if (!packageData) {
+      return NextResponse.json(
+        { error: 'Paquete no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    // Calcular fechas del paquete
+    const startDateObj = new Date(data.startDate + 'T00:00:00')
+    const endDateObj = new Date(startDateObj)
+    endDateObj.setDate(startDateObj.getDate() + packageData.durationDays - 1)
+
+    // Generar número de confirmación
+    const confirmationNumber = await generateConfirmationNumber()
+    
+    console.log('📦 Package reservation details:', {
+      confirmationNumber,
+      startDate: data.startDate,
+      endDate: endDateObj.toISOString().split('T')[0],
+      participants: data.participants,
+      totalPrice: packageData.basePrice.toString()
+    })
+
+    // Crear reservación en transacción
+    const result = await prisma.$transaction(async (tx) => {
+      // Crear reservación principal
+      const reservation = await tx.reservation.create({
+        data: {
+          confirmationNumber,
+          guestId: BigInt(data.guestId),
+          status: 'PENDING',
+          checkin: startDateObj,
+          checkout: endDateObj,
+          totalAmount: packageData.basePrice,
+          specialRequests: data.specialRequests || null,
+          source: 'ADMIN_DASHBOARD',
+        }
+      })
+
+      // Crear item de reservación para el paquete
+      const reservationItem = await tx.reservationItem.create({
+        data: {
+          reservationId: reservation.id,
+          itemType: 'PACKAGE',
+          title: packageData.name,
+          quantity: 1,
+          unitPrice: packageData.basePrice,
+          amount: packageData.basePrice,
+        }
+      })
+
+      // Crear detalle de paquete
+      await tx.packageBooking.create({
+        data: {
+          reservationItemId: reservationItem.id,
+          packageId: BigInt(data.packageId),
+          startTs: startDateObj,
+          endTs: endDateObj,
+          pax: data.participants,
+          participantNames: data.participantNames || null,
+        }
+      })
+
+      // TODO: Aquí se podrían crear automáticamente las reservaciones de hoteles y actividades
+      // Por ahora, solo creamos la reservación del paquete principal
+
+      return reservation
+    })
+
+    // 🔔 Disparar notificaciones automáticas
+    try {
+      console.log('📧 Triggering notification for package reservation:', result.id.toString())
+      await onReservationCreated(result.id)
+    } catch (notificationError) {
+      console.error('❌ Error sending notifications:', notificationError)
+      // No fallar la reservación por errores de notificación
+    }
+
+    return NextResponse.json({
+      success: true,
+      reservationId: result.id.toString(),
+      confirmationNumber: result.confirmationNumber,
+      message: 'Reservación de paquete creada exitosamente'
+    })
+
+  } catch (error) {
+    console.error('Error creating package reservation:', error)
+    return NextResponse.json(
+      { error: 'Error creando reservación de paquete' },
       { status: 500 }
     )
   }

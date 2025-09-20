@@ -180,7 +180,7 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
   const [packageData, setPackageData] = useState({
     startDate: '',
-    participants: 1,
+    participants: 4, // Cambiado a 4 para que coincida con el paquete
     participantNames: '',
     specialRequests: '',
   })
@@ -1116,7 +1116,16 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                             ? 'ring-2 ring-purple-500 bg-purple-50' 
                             : 'hover:bg-gray-50 border-gray-200'
                         }`}
-                        onClick={() => setSelectedPackage(pkg)}
+                        onClick={() => {
+                          setSelectedPackage(pkg)
+                          // Auto-ajustar participantes al mínimo requerido
+                          if (packageData.participants < pkg.minParticipants) {
+                            setPackageData({
+                              ...packageData,
+                              participants: pkg.minParticipants
+                            })
+                          }
+                        }}
                       >
                         <CardContent className="p-6">
                           <div className="flex items-start space-x-4">
