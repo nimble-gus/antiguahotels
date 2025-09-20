@@ -2,8 +2,9 @@
 
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Upload, X, Image as ImageIcon, Check } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Check, Scissors } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import ImageCropEditor from './image-crop-editor'
 
 interface CloudinaryUploadProps {
   onUploadComplete: (imageUrl: string, publicId: string) => void
@@ -22,6 +23,7 @@ export default function CloudinaryUpload({
   const [uploading, setUploading] = useState(false)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [uploadedPublicId, setUploadedPublicId] = useState<string | null>(null)
+  const [showCropEditor, setShowCropEditor] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +49,35 @@ export default function CloudinaryUpload({
       return
     }
 
-    await uploadToCloudinary(file)
+    // Abrir editor de crop en lugar de subir directamente
+    setShowCropEditor(true)
+  }
+
+  const handleImageCropped = async (croppedImageUrl: string, originalFile: File) => {
+    setShowCropEditor(false)
+    
+    // Convertir la imagen recortada a File
+    try {
+      const response = await fetch(croppedImageUrl)
+      const blob = await response.blob()
+      const croppedFile = new File([blob], originalFile.name, { 
+        type: originalFile.type,
+        lastModified: Date.now()
+      })
+      
+      // Subir la imagen recortada
+      await uploadToCloudinary(croppedFile)
+      
+      // Limpiar URL temporal
+      URL.revokeObjectURL(croppedImageUrl)
+    } catch (error) {
+      console.error('Error processing cropped image:', error)
+      toast({
+        title: 'Error',
+        description: 'Error procesando la imagen recortada',
+        variant: 'destructive'
+      })
+    }
   }
 
   const uploadToCloudinary = async (file: File) => {
@@ -123,7 +153,7 @@ export default function CloudinaryUpload({
           border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
           ${disabled 
             ? 'border-gray-300 bg-gray-50 cursor-not-allowed' 
-            : 'border-gray-400 hover:border-emerald-500 hover:bg-emerald-50'
+            : 'border-gray-400 hover:border-antigua-purple hover:bg-purple-50'
           }
         `}
       >
@@ -138,13 +168,13 @@ export default function CloudinaryUpload({
         
         {uploading ? (
           <div className="space-y-2">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-antigua-purple mx-auto"></div>
             <p className="text-sm text-gray-600">Subiendo imagen...</p>
           </div>
         ) : uploadedImage ? (
           <div className="space-y-2">
-            <Check className="h-8 w-8 text-emerald-600 mx-auto" />
-            <p className="text-sm text-emerald-600 font-medium">Imagen subida correctamente</p>
+            <Check className="h-8 w-8 text-antigua-purple mx-auto" />
+            <p className="text-sm text-antigua-purple font-medium">Imagen subida correctamente</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -155,6 +185,10 @@ export default function CloudinaryUpload({
             <p className="text-xs text-gray-500">
               PNG, JPG, WEBP hasta 10MB
             </p>
+            <div className="flex items-center justify-center mt-2">
+              <Scissors className="h-4 w-4 text-antigua-purple mr-1" />
+              <span className="text-xs text-antigua-purple font-medium">Editor de recorte incluido</span>
+            </div>
           </div>
         )}
       </div>
@@ -189,13 +223,22 @@ export default function CloudinaryUpload({
       <div className="bg-blue-50 p-4 rounded-lg">
         <h4 className="font-medium text-blue-900 mb-2">Instrucciones:</h4>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Usando preset: megatienda_unsigned</li>
+          <li>• Editor de recorte integrado para ajustar imágenes</li>
           <li>• Se guardarán en la carpeta "website-images"</li>
           <li>• Formatos recomendados: JPG para fotos, PNG para gráficos</li>
-          <li>• Tamaño recomendado para hero: 1920x1080px</li>
-          <li>• Máximo 5MB para evitar timeouts</li>
+          <li>• Tamaño recomendado para hero: 1920x1080px (16:9)</li>
+          <li>• Máximo 10MB - se optimizará automáticamente</li>
         </ul>
       </div>
+
+      {/* Image Crop Editor Modal */}
+      {showCropEditor && (
+        <ImageCropEditor
+          onImageCropped={handleImageCropped}
+          onCancel={() => setShowCropEditor(false)}
+          aspectRatio={16/9} // Para hero images
+        />
+      )}
     </div>
   )
 }
