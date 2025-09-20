@@ -1,21 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, Phone, Mail, MapPin, Calendar } from 'lucide-react'
+import { Menu, X, Phone, Mail, MapPin, Calendar, Globe, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function PublicHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false)
+  const languageDropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Usar el contexto de idioma
+  const { currentLanguage, setLanguage, t, languages } = useLanguage()
+
+  // Cerrar dropdown cuando se hace clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
+        setIsLanguageOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const navigation = [
-    { name: 'Inicio', href: '/' },
-    { name: 'Alojamientos', href: '/accommodations' },
-    { name: 'Actividades', href: '/activities' },
-    { name: 'Paquetes', href: '/packages' },
-    { name: 'Shuttle Service', href: '/shuttle' },
-    { name: 'Contacto', href: '/contact' },
+    { name: t('header.home'), href: '/' },
+    { name: t('header.accommodations'), href: '/accommodations' },
+    { name: t('header.activities'), href: '/activities' },
+    { name: t('header.packages'), href: '/packages' },
+    { name: t('header.shuttle'), href: '/shuttle' },
+    { name: t('header.contact'), href: '/contact' },
   ]
 
   return (
@@ -24,19 +44,61 @@ export default function PublicHeader() {
       <div className="bg-gradient-to-r from-antigua-purple to-antigua-pink text-white py-2">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center text-sm">
-            <div className="flex items-center space-x-4 mb-2 md:mb-0">
-              <div className="flex items-center space-x-1">
-                <Phone className="h-4 w-4" />
-                <span>+502 1234-5678</span>
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 mb-2 md:mb-0">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-1">
+                  <Phone className="h-4 w-4" />
+                  <span>{t('header.phone')}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Mail className="h-4 w-4" />
+                  <span>{t('header.email')}</span>
+                </div>
               </div>
-              <div className="flex items-center space-x-1">
-                <Mail className="h-4 w-4" />
-                <span>info@antiguahotelstours.com</span>
+              
+              {/* Language Selector */}
+              <div className="relative" ref={languageDropdownRef}>
+                <button
+                  onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                  className="flex items-center space-x-1 hover:bg-white hover:bg-opacity-10 px-2 py-1 rounded transition-colors duration-200"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span className="text-sm">
+                    {languages.find(lang => lang.code === currentLanguage)?.flag} 
+                    <span className="hidden sm:inline">
+                      {languages.find(lang => lang.code === currentLanguage)?.name}
+                    </span>
+                  </span>
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+                
+                {/* Language Dropdown */}
+                {isLanguageOpen && (
+                  <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] z-50">
+                    {languages.map((language) => (
+                      <button
+                        key={language.code}
+                        onClick={() => {
+                          setLanguage(language.code)
+                          setIsLanguageOpen(false)
+                          console.log(`Idioma cambiado a: ${language.name}`)
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center space-x-2 transition-colors duration-200 ${
+                          currentLanguage === language.code ? 'bg-antigua-purple bg-opacity-10 text-antigua-purple' : 'text-gray-700'
+                        }`}
+                      >
+                        <span>{language.flag}</span>
+                        <span>{language.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
+            
             <div className="flex items-center space-x-1">
               <MapPin className="h-4 w-4" />
-              <span>Antigua Guatemala, Sacatepéquez</span>
+              <span>{t('header.location')}</span>
             </div>
           </div>
         </div>
@@ -78,7 +140,7 @@ export default function PublicHeader() {
             >
               <Link href="/booking">
                 <Calendar className="h-4 w-4 mr-2" />
-                Reservar Ahora
+                {t('header.book_now')}
               </Link>
             </Button>
           </div>
@@ -117,7 +179,7 @@ export default function PublicHeader() {
                 >
                   <Link href="/booking">
                     <Calendar className="h-4 w-4 mr-2" />
-                    Reservar Ahora
+                    {t('header.book_now')}
                   </Link>
                 </Button>
               </div>

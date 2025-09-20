@@ -17,7 +17,8 @@ import {
   Eye,
   Calendar,
   Star,
-  X
+  X,
+  ImageIcon
 } from 'lucide-react'
 
 interface Activity {
@@ -38,6 +39,8 @@ interface Activity {
   whatToBring?: string
   cancellationPolicy?: string
   isActive: boolean
+  isFeatured?: boolean
+  featuredOrder?: number
   createdAt: string
   _count: {
     activitySchedules: number
@@ -102,6 +105,33 @@ export default function ActivitiesPage() {
       }
     } catch (error) {
       console.error('Error deleting activity:', error)
+      alert('Error de conexión')
+    }
+  }
+
+  const handleToggleFeatured = async (activity: Activity) => {
+    try {
+      console.log('🌟 Toggling featured status for:', activity.name)
+      
+      const response = await fetch(`/api/activities/featured?id=${activity.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          isFeatured: !activity.isFeatured,
+          featuredOrder: !activity.isFeatured ? Date.now() : null
+        })
+      })
+
+      if (response.ok) {
+        console.log('✅ Featured status updated successfully')
+        await fetchActivities()
+      } else {
+        const error = await response.json()
+        console.error('❌ Error response:', error)
+        alert(error.error || 'Error actualizando estado destacado')
+      }
+    } catch (error) {
+      console.error('Error updating featured status:', error)
       alert('Error de conexión')
     }
   }
@@ -223,7 +253,13 @@ export default function ActivitiesPage() {
       {activities.length > 0 ? (
         <div className="grid gap-6">
           {activities.map((activity) => (
-            <Card key={activity.id}>
+            <Card key={activity.id} className={`relative ${activity.isFeatured ? 'ring-2 ring-antigua-purple' : ''}`}>
+              {activity.isFeatured && (
+                <div className="absolute -top-2 -right-2 bg-antigua-purple text-white px-2 py-1 rounded-full text-xs font-medium flex items-center z-10">
+                  <Star className="h-3 w-3 mr-1 fill-current" />
+                  Destacada #{activity.featuredOrder}
+                </div>
+              )}
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -290,6 +326,25 @@ export default function ActivitiesPage() {
                     >
                       <Calendar className="h-4 w-4 mr-2" />
                       Gestionar Horarios
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`/dashboard/activities/${activity.id}/images`, '_blank')}
+                    >
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Gestionar Imágenes
+                    </Button>
+                    
+                    <Button
+                      variant={activity.isFeatured ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleToggleFeatured(activity)}
+                      className={activity.isFeatured ? "bg-antigua-purple hover:bg-antigua-purple-dark text-white" : ""}
+                    >
+                      <Star className={`h-4 w-4 mr-2 ${activity.isFeatured ? 'fill-current' : ''}`} />
+                      {activity.isFeatured ? 'Destacada' : 'Destacar'}
                     </Button>
                     
                     <Button 

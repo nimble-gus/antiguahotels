@@ -11,6 +11,7 @@ import {
   Calendar,
   DollarSign
 } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface ServiceCardProps {
   title: string
@@ -43,10 +44,12 @@ export default function ServiceCard({
   reviews,
   features = [],
   href,
-  buttonText = 'Ver Detalles',
+  buttonText,
   badge,
   className = ''
 }: ServiceCardProps) {
+  const { t } = useLanguage()
+  
   return (
     <div className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group ${className}`}>
       {/* Image */}
@@ -71,19 +74,11 @@ export default function ServiceCard({
       
       {/* Content */}
       <div className="p-6">
-        {/* Title and Rating */}
-        <div className="flex justify-between items-start mb-3">
+        {/* Title */}
+        <div className="mb-3">
           <h3 className="text-xl font-bold text-gray-900 group-hover:text-antigua-purple transition-colors duration-200">
             {title}
           </h3>
-          {rating && (
-            <div className="flex items-center space-x-1">
-              <Star className="h-4 w-4 text-yellow-400 fill-current" />
-              <span className="text-sm text-gray-600">
-                {rating} {reviews && `(${reviews})`}
-              </span>
-            </div>
-          )}
         </div>
         
         {/* Description */}
@@ -91,8 +86,8 @@ export default function ServiceCard({
           {description}
         </p>
         
-        {/* Features */}
-        {features.length > 0 && (
+        {/* Features - Solo se muestran si hay etiquetas */}
+        {features && features.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {features.slice(0, 3).map((feature, index) => (
               <span
@@ -147,7 +142,7 @@ export default function ServiceCard({
             className="bg-antigua-purple hover:bg-antigua-purple-dark text-white group-hover:translate-x-1 transition-transform duration-200"
           >
             <Link href={href}>
-              {buttonText}
+              {buttonText || t('service.view_details')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

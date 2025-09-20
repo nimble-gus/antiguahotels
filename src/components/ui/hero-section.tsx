@@ -107,7 +107,7 @@ export default function HeroSection({
   }
 
   return (
-    <section className="relative py-8">
+    <section className="relative">
       <style jsx>{`
         .carousel-container {
           transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -190,37 +190,55 @@ export default function HeroSection({
                           
                           {/* Action Buttons */}
                           {(primaryButton || secondaryButton) && (
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <div className="flex flex-col sm:flex-row gap-6 justify-center">
                               {primaryButton && (
-                                <Button 
-                                  asChild
-                                  size="lg"
-                                  className="bg-antigua-purple hover:bg-antigua-purple-dark text-white px-6 md:px-8 py-3 text-base md:text-lg shadow-lg"
+                                <a 
+                                  href={primaryButton.href}
+                                  className="group relative inline-flex items-center justify-center px-8 md:px-10 py-4 text-base md:text-lg font-semibold text-white bg-gradient-to-r from-antigua-purple to-antigua-pink rounded-full shadow-2xl hover:shadow-antigua-purple/50 transform hover:scale-105 transition-all duration-300 overflow-hidden"
                                 >
-                                  <a href={primaryButton.href}>
+                                  {/* Animated background */}
+                                  <div className="absolute inset-0 bg-gradient-to-r from-antigua-pink to-antigua-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                  
+                                  {/* Shimmer effect */}
+                                  <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-pulse"></div>
+                                  
+                                  <div className="relative flex items-center">
                                     {primaryButton.icon && (
-                                      <span className="mr-2">{primaryButton.icon}</span>
+                                      <span className="mr-3 transform group-hover:scale-110 transition-transform duration-300">
+                                        {primaryButton.icon}
+                                      </span>
                                     )}
-                                    {primaryButton.text}
-                                    <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
-                                  </a>
-                                </Button>
+                                    <span className="relative">
+                                      {primaryButton.text}
+                                    </span>
+                                    <ArrowRight className="ml-3 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+                                  </div>
+                                </a>
                               )}
                               
                               {secondaryButton && (
-                                <Button 
-                                  asChild
-                                  variant="outline"
-                                  size="lg"
-                                  className="border-white text-white hover:bg-white hover:text-gray-900 px-6 md:px-8 py-3 text-base md:text-lg backdrop-blur-sm"
+                                <a 
+                                  href={secondaryButton.href}
+                                  className="group relative inline-flex items-center justify-center px-8 md:px-10 py-4 text-base md:text-lg font-semibold text-white border-2 border-white/80 rounded-full backdrop-blur-md bg-white/10 hover:bg-white hover:text-gray-900 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
                                 >
-                                  <a href={secondaryButton.href}>
+                                  {/* Glass morphism background */}
+                                  <div className="absolute inset-0 bg-white/20 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                  
+                                  {/* Border glow effect */}
+                                  <div className="absolute inset-0 rounded-full border-2 border-antigua-yellow/0 group-hover:border-antigua-yellow/50 transition-all duration-300"></div>
+                                  
+                                  <div className="relative flex items-center">
                                     {secondaryButton.icon && (
-                                      <span className="mr-2">{secondaryButton.icon}</span>
+                                      <span className="mr-3 transform group-hover:scale-110 transition-transform duration-300">
+                                        {secondaryButton.icon}
+                                      </span>
                                     )}
-                                    {secondaryButton.text}
-                                  </a>
-                                </Button>
+                                    <span className="relative group-hover:text-gray-900 transition-colors duration-300">
+                                      {secondaryButton.text}
+                                    </span>
+                                    <ArrowRight className="ml-3 h-5 w-5 transform group-hover:translate-x-1 group-hover:text-gray-900 transition-all duration-300" />
+                                  </div>
+                                </a>
                               )}
                             </div>
                           )}
@@ -270,7 +288,7 @@ export default function HeroSection({
 
         {/* Dots Indicator */}
         {heroImages.length > 1 && (
-          <div className="flex justify-center mt-8 z-20">
+          <div className="flex justify-center mt-12 mb-8 z-20">
             <div className="flex space-x-3 bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full">
               {heroImages.map((_, index) => (
                 <button
@@ -295,14 +313,6 @@ export default function HeroSection({
         )}
       </div>
       
-      {/* Scroll Indicator */}
-      <div className="flex justify-center mt-8 text-gray-500">
-        <div className="animate-bounce">
-          <div className="w-5 h-8 md:w-6 md:h-10 border-2 border-gray-400 rounded-full flex justify-center">
-            <div className="w-1 h-2 md:h-3 bg-gray-400 rounded-full mt-2"></div>
-          </div>
-        </div>
-      </div>
     </section>
   )
 }

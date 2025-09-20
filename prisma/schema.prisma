@@ -233,6 +233,8 @@ model Activity {
   whatToBring         String?           @map("what_to_bring") @db.Text
   cancellationPolicy  String?           @map("cancellation_policy") @db.Text
   isActive            Boolean           @default(true) @map("is_active") @db.TinyInt
+  isFeatured          Boolean           @default(false) @map("is_featured") @db.TinyInt
+  featuredOrder       Int?              @map("featured_order")
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
 

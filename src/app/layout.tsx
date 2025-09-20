@@ -1,11 +1,19 @@
-'use client'
-
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { SessionProvider } from 'next-auth/react'
+import Providers from '@/components/providers'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Antigua Hotels Tours',
+  description: 'Experiencias únicas en Guatemala - Hoteles boutique, tours y aventuras en Antigua',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
+}
 
 export default function RootLayout({
   children,
@@ -15,9 +23,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <SessionProvider>
+        <Providers>
           {children}
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   )

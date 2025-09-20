@@ -97,6 +97,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('📝 Received activity data:', body)
+    
     const {
       name,
       description,
@@ -113,11 +115,20 @@ export async function POST(request: NextRequest) {
       whatIncludes,
       whatToBring,
       cancellationPolicy,
-      isActive
+      isActive,
+      isFeatured,
+      featuredOrder
     } = body
 
+    console.log('🔍 Validation check:', { name, basePrice, minParticipants })
+
     // Validaciones
-    if (!name || !basePrice || !minParticipants) {
+    if (!name || basePrice === undefined || basePrice === '' || minParticipants === undefined || minParticipants === '') {
+      console.log('❌ Validation failed:', { 
+        nameCheck: !name, 
+        basePriceCheck: basePrice === undefined || basePrice === '', 
+        minParticipantsCheck: minParticipants === undefined || minParticipants === '' 
+      })
       return NextResponse.json(
         { error: 'Nombre, precio base y participantes mínimos son requeridos' },
         { status: 400 }
@@ -143,6 +154,8 @@ export async function POST(request: NextRequest) {
         whatToBring: whatToBring || null,
         cancellationPolicy: cancellationPolicy || null,
         isActive: isActive ?? true,
+        isFeatured: isFeatured ?? false,
+        featuredOrder: featuredOrder || null,
       },
       include: {
         _count: {
@@ -213,8 +226,13 @@ export async function PUT(request: NextRequest) {
       whatIncludes,
       whatToBring,
       cancellationPolicy,
-      isActive
+      isActive,
+      isFeatured,
+      featuredOrder
     } = body
+
+    console.log('📝 PUT - Received activity data:', body)
+    console.log('🔍 PUT - Validation check:', { name, basePrice, minParticipants })
 
     // Validaciones
     if (!name || !basePrice || !minParticipants) {
@@ -244,6 +262,8 @@ export async function PUT(request: NextRequest) {
         whatToBring: whatToBring || null,
         cancellationPolicy: cancellationPolicy || null,
         isActive: isActive ?? true,
+        isFeatured: isFeatured ?? false,
+        featuredOrder: featuredOrder || null,
       },
       include: {
         _count: {
