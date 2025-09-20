@@ -28,6 +28,7 @@ const navigation = [
   { name: 'Huéspedes', href: '/dashboard/guests', icon: Users },
   { name: 'Pagos', href: '/dashboard/payments', icon: CreditCard },
   { name: 'Gestión de Imágenes', href: '/dashboard/images', icon: ImageIcon },
+  { name: 'Imágenes del Sitio', href: '/dashboard/website-images', icon: ImageIcon },
   { name: 'Usuarios Admin', href: '/dashboard/admin-users', icon: Users },
   { name: 'Reportes', href: '/dashboard/reports', icon: BarChart3 },
   { name: 'Configuración', href: '/dashboard/settings', icon: Settings },

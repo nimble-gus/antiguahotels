@@ -43,6 +43,14 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Colores del logo de Antigua Hotels Tours
+        'antigua': {
+          'purple': '#7C3AED',
+          'yellow': '#FDE047', 
+          'pink': '#EC4899',
+          'purple-light': '#A855F7',
+          'purple-dark': '#6D28D9',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
