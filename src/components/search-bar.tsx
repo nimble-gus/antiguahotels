@@ -10,6 +10,7 @@ import {
   Search,
   ChevronDown,
   Hotel,
+  Bed,
   Plane,
   Car,
   Package,
@@ -33,7 +34,8 @@ export default function SearchBar() {
   
   // Definir searchOptions usando las traducciones
   const searchOptions: SearchOption[] = useMemo(() => [
-    { id: 'accommodations', label: t('search.accommodations'), icon: Hotel, route: '/accommodations' },
+    { id: 'hotels', label: t('search.hotels'), icon: Hotel, route: '/hotels' },
+    { id: 'accommodations', label: t('search.accommodations'), icon: Bed, route: '/accommodations' },
     { id: 'activities', label: t('search.activities'), icon: Plane, route: '/activities' },
     { id: 'shuttle', label: t('search.shuttle'), icon: Car, route: '/shuttle' },
     { id: 'packages', label: t('search.packages'), icon: Package, route: '/packages' }

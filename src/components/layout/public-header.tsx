@@ -31,6 +31,7 @@ export default function PublicHeader() {
 
   const navigation = [
     { name: t('header.home'), href: '/' },
+    { name: t('header.hotels'), href: '/hotels' },
     { name: t('header.accommodations'), href: '/accommodations' },
     { name: t('header.activities'), href: '/activities' },
     { name: t('header.packages'), href: '/packages' },
