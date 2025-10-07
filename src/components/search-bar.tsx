@@ -159,26 +159,26 @@ export default function SearchBar() {
   ]
 
   return (
-    <div className="relative py-8 bg-gray-50">
+    <div className="relative py-4 sm:py-6 lg:py-8 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100">
-          <div className="flex flex-col lg:flex-row gap-4 items-end">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl p-4 sm:p-6 border border-gray-100">
+          <div className="flex flex-col sm:flex-col lg:flex-row gap-3 sm:gap-4 items-stretch sm:items-end">
             
             {/* Service Type Selector */}
             <div className="flex-1 min-w-0" ref={serviceRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 {t('search.service_type')}
               </label>
               <div className="relative">
                 <button
                   onClick={() => setShowServiceDropdown(!showServiceDropdown)}
-                  className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:border-antigua-purple focus:outline-none focus:ring-2 focus:ring-antigua-purple focus:border-transparent transition-colors"
+                  className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg hover:border-antigua-purple focus:outline-none focus:ring-2 focus:ring-antigua-purple focus:border-transparent transition-colors"
                 >
-                  <div className="flex items-center">
-                    <selectedService.icon className="h-5 w-5 text-antigua-purple mr-3" />
-                    <span className="text-gray-900">{selectedService.label}</span>
+                  <div className="flex items-center min-w-0">
+                    <selectedService.icon className="h-4 w-4 sm:h-5 sm:w-5 text-antigua-purple mr-2 sm:mr-3 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-gray-900 truncate">{selectedService.label}</span>
                   </div>
-                  <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showServiceDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-gray-500 transition-transform flex-shrink-0 ${showServiceDropdown ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {showServiceDropdown && (
@@ -190,10 +190,10 @@ export default function SearchBar() {
                           setSelectedService(option)
                           setShowServiceDropdown(false)
                         }}
-                        className="w-full flex items-center px-4 py-3 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                        className="w-full flex items-center px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
                       >
-                        <option.icon className="h-5 w-5 text-antigua-purple mr-3" />
-                        <span className="text-gray-900">{option.label}</span>
+                        <option.icon className="h-4 w-4 sm:h-5 sm:w-5 text-antigua-purple mr-2 sm:mr-3 flex-shrink-0" />
+                        <span className="text-sm sm:text-base text-gray-900 truncate">{option.label}</span>
                       </button>
                     ))}
                   </div>
@@ -203,7 +203,7 @@ export default function SearchBar() {
 
             {/* Dates */}
             <div className="flex-1 min-w-0" ref={calendarRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 {t('search.dates')}
               </label>
               <div className="relative">
@@ -212,35 +212,35 @@ export default function SearchBar() {
                     setShowCalendar(!showCalendar)
                     setCalendarType('checkin')
                   }}
-                  className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:border-antigua-purple focus:outline-none focus:ring-2 focus:ring-antigua-purple focus:border-transparent transition-colors"
+                  className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg hover:border-antigua-purple focus:outline-none focus:ring-2 focus:ring-antigua-purple focus:border-transparent transition-colors"
                 >
-                  <div className="flex items-center">
-                    <Calendar className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-900">
+                  <div className="flex items-center min-w-0">
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 mr-2 sm:mr-3 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-gray-900 truncate">
                       {checkIn && checkOut 
                         ? `${formatDate(checkIn)} - ${formatDate(checkOut)}`
                         : t('search.select_dates')
                       }
                     </span>
                   </div>
-                  <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-gray-500 transition-transform flex-shrink-0 ${showCalendar ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {showCalendar && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
-                    <div className="text-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3 sm:p-4">
+                    <div className="text-center mb-3 sm:mb-4">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                         {monthNames[new Date().getMonth()]} {new Date().getFullYear()}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         {calendarType === 'checkin' ? t('search.select_checkin') : t('search.select_checkout')}
                       </p>
                     </div>
                     
                     {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 gap-1 mb-4">
+                    <div className="grid grid-cols-7 gap-1 mb-3 sm:mb-4">
                       {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
-                        <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                        <div key={day} className="text-center text-xs sm:text-sm font-medium text-gray-500 py-1 sm:py-2">
                           {day}
                         </div>
                       ))}
@@ -251,7 +251,7 @@ export default function SearchBar() {
                           onClick={() => date && handleDateSelect(date)}
                           disabled={!date || date < new Date()}
                           className={`
-                            aspect-square flex items-center justify-center text-sm rounded-lg transition-colors
+                            aspect-square flex items-center justify-center text-xs sm:text-sm rounded-lg transition-colors
                             ${!date 
                               ? 'invisible' 
                               : date < new Date()
@@ -273,93 +273,93 @@ export default function SearchBar() {
 
             {/* Guests */}
             <div className="flex-1 min-w-0" ref={guestRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 {t('search.guests')}
               </label>
               <div className="relative">
                 <button
                   onClick={() => setShowGuestSelector(!showGuestSelector)}
-                  className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:border-antigua-purple focus:outline-none focus:ring-2 focus:ring-antigua-purple focus:border-transparent transition-colors"
+                  className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg hover:border-antigua-purple focus:outline-none focus:ring-2 focus:ring-antigua-purple focus:border-transparent transition-colors"
                 >
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-900">
+                  <div className="flex items-center min-w-0">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 mr-2 sm:mr-3 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-gray-900 truncate">
                       {guests.adults + guests.children} {guests.adults + guests.children !== 1 ? t('search.guest_plural') : t('search.guest_single')}, {guests.rooms} {guests.rooms !== 1 ? t('search.room_plural') : t('search.room_single')}
                     </span>
                   </div>
-                  <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showGuestSelector ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-3 w-3 sm:h-4 sm:w-4 text-gray-500 transition-transform flex-shrink-0 ${showGuestSelector ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {showGuestSelector && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 min-w-[280px]">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3 sm:p-4 min-w-[260px] sm:min-w-[280px]">
                     {/* Adults */}
-                    <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                      <div>
-                        <div className="font-medium text-gray-900">{t('search.adults')}</div>
-                        <div className="text-sm text-gray-500">{t('search.adults_desc')}</div>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-100">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm sm:text-base font-medium text-gray-900">{t('search.adults')}</div>
+                        <div className="text-xs sm:text-sm text-gray-500">{t('search.adults_desc')}</div>
                       </div>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         <button
                           onClick={() => updateGuests('adults', 'subtract')}
                           disabled={guests.adults <= 1}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
-                        <span className="w-8 text-center font-medium">{guests.adults}</span>
+                        <span className="w-6 sm:w-8 text-center font-medium text-sm sm:text-base">{guests.adults}</span>
                         <button
                           onClick={() => updateGuests('adults', 'add')}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
                       </div>
                     </div>
 
                     {/* Children */}
-                    <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                      <div>
-                        <div className="font-medium text-gray-900">{t('search.children')}</div>
-                        <div className="text-sm text-gray-500">{t('search.children_desc')}</div>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-100">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm sm:text-base font-medium text-gray-900">{t('search.children')}</div>
+                        <div className="text-xs sm:text-sm text-gray-500">{t('search.children_desc')}</div>
                       </div>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         <button
                           onClick={() => updateGuests('children', 'subtract')}
                           disabled={guests.children <= 0}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
-                        <span className="w-8 text-center font-medium">{guests.children}</span>
+                        <span className="w-6 sm:w-8 text-center font-medium text-sm sm:text-base">{guests.children}</span>
                         <button
                           onClick={() => updateGuests('children', 'add')}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
                       </div>
                     </div>
 
                     {/* Rooms */}
-                    <div className="flex items-center justify-between py-3">
-                      <div>
-                        <div className="font-medium text-gray-900">{t('search.rooms')}</div>
-                        <div className="text-sm text-gray-500">{t('search.rooms_desc')}</div>
+                    <div className="flex items-center justify-between py-2 sm:py-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm sm:text-base font-medium text-gray-900">{t('search.rooms')}</div>
+                        <div className="text-xs sm:text-sm text-gray-500">{t('search.rooms_desc')}</div>
                       </div>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         <button
                           onClick={() => updateGuests('rooms', 'subtract')}
                           disabled={guests.rooms <= 1}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
-                        <span className="w-8 text-center font-medium">{guests.rooms}</span>
+                        <span className="w-6 sm:w-8 text-center font-medium text-sm sm:text-base">{guests.rooms}</span>
                         <button
                           onClick={() => updateGuests('rooms', 'add')}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-antigua-purple"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>
                       </div>
                     </div>
@@ -369,35 +369,35 @@ export default function SearchBar() {
             </div>
 
             {/* Search Button */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 w-full sm:w-auto">
               <Button
                 onClick={handleSearch}
                 size="lg"
-                className="bg-antigua-purple hover:bg-antigua-purple-dark text-white px-8 py-3 h-[52px] shadow-lg"
+                className="bg-antigua-purple hover:bg-antigua-purple-dark text-white px-6 sm:px-8 py-2.5 sm:py-3 h-[44px] sm:h-[52px] shadow-lg w-full sm:w-auto"
               >
-                <Search className="h-5 w-5 mr-2" />
-                {t('search.search')}
+                <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <span className="text-sm sm:text-base">{t('search.search')}</span>
               </Button>
             </div>
           </div>
 
           {/* Quick Filters */}
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-gray-600 mr-2">{t('search.popular_searches')}</span>
-              <button className="text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium">
+          <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-100">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
+              <span className="text-xs sm:text-sm text-gray-600 mr-1 sm:mr-2">{t('search.popular_searches')}</span>
+              <button className="text-xs sm:text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium px-1 sm:px-0">
                 {t('search.hotels_antigua')}
               </button>
-              <span className="text-gray-300">•</span>
-              <button className="text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium">
+              <span className="text-gray-300 text-xs sm:text-sm">•</span>
+              <button className="text-xs sm:text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium px-1 sm:px-0">
                 {t('search.volcano_tours')}
               </button>
-              <span className="text-gray-300">•</span>
-              <button className="text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium">
+              <span className="text-gray-300 text-xs sm:text-sm">•</span>
+              <button className="text-xs sm:text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium px-1 sm:px-0">
                 {t('search.family_packages')}
               </button>
-              <span className="text-gray-300">•</span>
-              <button className="text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium">
+              <span className="text-gray-300 text-xs sm:text-sm">•</span>
+              <button className="text-xs sm:text-sm text-antigua-purple hover:text-antigua-purple-dark font-medium px-1 sm:px-0">
                 {t('search.airport_shuttle')}
               </button>
             </div>

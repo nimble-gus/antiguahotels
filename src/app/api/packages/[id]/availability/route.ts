@@ -280,3 +280,6 @@ async function checkHotelAvailability(
     return { available: false, message: 'Error de conexión verificando hotel' }
   }
 }
+
+
+

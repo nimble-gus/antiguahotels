@@ -75,19 +75,39 @@ export function CyberSourcePaymentForm({
     try {
       console.log('🏦 Processing payment with CyberSource/NeoNet...')
       
-      // TODO: Aquí se integrará con la API real de CyberSource cuando la recibas
-      // Por ahora, simular el procesamiento
+      // Procesar pago con la API de booking
+      const response = await fetch('/api/booking/process-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reservationId,
+          amount,
+          currency,
+          cardData: {
+            cardNumber: cardDetails.cardNumber,
+            expiryDate: cardDetails.expiryDate,
+            cvv: cardDetails.cvv,
+            cardholderName: cardDetails.cardholderName,
+            bankCode: cardDetails.bankCode,
+            cardType: detectCardType(cardDetails.cardNumber)
+          }
+        })
+      })
+
+      const result = await response.json()
       
-      alert('🚧 Integración con CyberSource/NeoNet pendiente.\nCuando recibas las credenciales, esta funcionalidad estará lista para implementar.')
-      
-      // Simular delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setLoading(false)
+      if (result.success) {
+        console.log('✅ Payment processed successfully:', result)
+        onSuccess()
+      } else {
+        setErrors([result.error || 'Error procesando el pago'])
+        console.error('Payment failed:', result)
+      }
       
     } catch (error) {
       console.error('Error processing CyberSource payment:', error)
       setErrors(['Error de conexión al procesar pago'])
+    } finally {
       setLoading(false)
     }
   }
@@ -359,3 +379,6 @@ export function CyberSourcePaymentForm({
     </div>
   )
 }
+
+
+

@@ -203,3 +203,6 @@ export function clearSettingsCache(): void {
   cacheTimestamp = 0
   console.log('🗑️ Settings cache cleared')
 }
+
+
+

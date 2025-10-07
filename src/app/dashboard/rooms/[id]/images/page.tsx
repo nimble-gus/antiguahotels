@@ -170,3 +170,6 @@ export default function RoomImagesPage() {
     </div>
   )
 }
+
+
+

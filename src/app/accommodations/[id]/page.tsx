@@ -42,6 +42,12 @@ interface Room {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  amenities?: Array<{
+    id: string
+    name: string
+    icon: string
+    category: string
+  }>
   roomType: {
     id: string
     name: string
@@ -49,7 +55,6 @@ interface Room {
     occupancy: number
     bedConfiguration?: string
     description?: string
-    amenities?: string[]
     imageUrl?: string
   }
   hotel: {
@@ -85,34 +90,21 @@ export default function RoomDetailsPage() {
   useEffect(() => {
     const loadRoomData = async () => {
       try {
-        // Usar la API del admin para obtener la habitación específica
+        console.log('🔍 Loading room data for ID:', roomId)
+        // Usar la API del admin para obtener la habitación específica con toda la información
         const roomResponse = await fetch(`/api/rooms/${roomId}`)
+        console.log('📡 Room API response status:', roomResponse.status)
+        
         if (roomResponse.ok) {
           const roomData = await roomResponse.json()
-          
-          // Obtener información completa del hotel
-          const hotelResponse = await fetch(`/api/hotels/${roomData.hotelId}`)
-          if (hotelResponse.ok) {
-            const hotelData = await hotelResponse.json()
-            
-            setRoom({
-              ...roomData,
-              hotel: {
-                id: hotelData.id,
-                name: hotelData.name,
-                city: hotelData.city,
-                address: hotelData.address,
-                phone: hotelData.phone,
-                email: hotelData.email,
-                logoUrl: hotelData.logoUrl,
-                checkInTime: hotelData.checkInTime,
-                checkOutTime: hotelData.checkOutTime
-              }
-            })
-          }
+          console.log('✅ Room data loaded:', roomData)
+          setRoom(roomData)
+        } else {
+          const errorData = await roomResponse.json()
+          console.error('❌ Error loading room:', errorData)
         }
       } catch (error) {
-        console.error('Error loading room data:', error)
+        console.error('❌ Error loading room data:', error)
       } finally {
         setLoading(false)
       }
@@ -123,36 +115,24 @@ export default function RoomDetailsPage() {
     }
   }, [roomId])
 
-  // Obtener icono de amenidad específica de habitación
-  const getAmenityIcon = (amenity: string) => {
+  // Obtener icono de amenidad
+  const getAmenityIcon = (iconName: string) => {
     const icons: { [key: string]: any } = {
-      ac: Star,
-      tv: Star,
-      minibar: Star,
-      safe: Star,
-      balcony: Star,
-      ocean_view: Star,
-      city_view: Star,
-      bathtub: Star,
-      kitchenette: Star
+      'wifi': Wifi,
+      'ac': Star,
+      'tv': Star,
+      'minibar': Coffee,
+      'safe': Star,
+      'balcony': Star,
+      'ocean-view': Waves,
+      'city-view': Star,
+      'bathtub': Star,
+      'kitchenette': Star,
+      'pool': Waves,
+      'gym': Dumbbell,
+      'parking': Car
     }
-    return icons[amenity] || Star
-  }
-
-  // Obtener label de amenidad específica de habitación
-  const getAmenityLabel = (amenity: string) => {
-    const labels: { [key: string]: string } = {
-      ac: 'Aire Acondicionado',
-      tv: 'TV',
-      minibar: 'Minibar',
-      safe: 'Caja Fuerte',
-      balcony: 'Balcón',
-      ocean_view: 'Vista al Mar',
-      city_view: 'Vista a la Ciudad',
-      bathtub: 'Bañera',
-      kitchenette: 'Kitchenette'
-    }
-    return labels[amenity] || amenity
+    return icons[iconName] || Star
   }
 
   // Formatear tiempo
@@ -370,16 +350,16 @@ export default function RoomDetailsPage() {
                 </div>
 
                 {/* Amenities */}
-                {room.roomType.amenities && room.roomType.amenities.length > 0 && (
+                {room.amenities && room.amenities.length > 0 && (
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">Amenidades</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {room.roomType.amenities.map((amenity) => {
-                        const IconComponent = getAmenityIcon(amenity)
+                      {room.amenities.map((amenity) => {
+                        const IconComponent = getAmenityIcon(amenity.icon)
                         return (
-                          <div key={amenity} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div key={amenity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                             <IconComponent className="h-5 w-5 text-antigua-purple" />
-                            <span className="text-gray-700">{getAmenityLabel(amenity)}</span>
+                            <span className="text-gray-700">{amenity.name}</span>
                           </div>
                         )
                       })}

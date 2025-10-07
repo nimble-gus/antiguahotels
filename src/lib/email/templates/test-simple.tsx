@@ -38,3 +38,6 @@ export default function TestSimple({
 
 // Subject estático simple
 TestSimple.subject = 'Prueba de Email - Antigua Hotels'
+
+
+

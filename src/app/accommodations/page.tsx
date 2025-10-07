@@ -42,6 +42,12 @@ interface Room {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  amenities?: Array<{
+    id: string
+    name: string
+    icon: string
+    category: string
+  }>
   roomType: {
     id: string
     name: string
@@ -49,7 +55,6 @@ interface Room {
     occupancy: number
     bedConfiguration?: string
     description?: string
-    amenities?: string[]
     imageUrl?: string
   }
   hotel: {
@@ -73,9 +78,10 @@ interface Hotel {
 
 // Interface para las amenidades
 interface Amenity {
+  id: string
   name: string
-  icon: any
-  label: string
+  icon: string
+  category: string
 }
 
 export default function AccommodationsPage() {
@@ -97,18 +103,24 @@ export default function AccommodationsPage() {
     sortBy: 'price_asc' as 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'hotel_asc'
   })
 
-  // Amenidades específicas de habitación (no del hotel)
-  const availableAmenities: Amenity[] = [
-    { name: 'ac', icon: Star, label: 'Aire Acondicionado' },
-    { name: 'tv', icon: Star, label: 'TV' },
-    { name: 'minibar', icon: Star, label: 'Minibar' },
-    { name: 'safe', icon: Star, label: 'Caja Fuerte' },
-    { name: 'balcony', icon: Star, label: 'Balcón' },
-    { name: 'ocean_view', icon: Star, label: 'Vista al Mar' },
-    { name: 'city_view', icon: Star, label: 'Vista a la Ciudad' },
-    { name: 'bathtub', icon: Star, label: 'Bañera' },
-    { name: 'kitchenette', icon: Star, label: 'Kitchenette' }
-  ]
+  // Amenidades específicas de habitación - obtener dinámicamente
+  const [availableAmenities, setAvailableAmenities] = useState<Amenity[]>([])
+
+  // Cargar amenidades disponibles
+  useEffect(() => {
+    const fetchAmenities = async () => {
+      try {
+        const response = await fetch('/api/amenities?category=ROOM')
+        if (response.ok) {
+          const data = await response.json()
+          setAvailableAmenities(data.amenities || [])
+        }
+      } catch (error) {
+        console.error('Error fetching amenities:', error)
+      }
+    }
+    fetchAmenities()
+  }, [])
 
   // Cargar datos usando las APIs del admin
   useEffect(() => {
@@ -183,7 +195,9 @@ export default function AccommodationsPage() {
       
       // Filtro de amenidades
       const matchesAmenities = filters.amenities.length === 0 || 
-        (room.roomType.amenities && filters.amenities.every(amenity => room.roomType.amenities!.includes(amenity)))
+        (room.amenities && filters.amenities.every(amenityId => 
+          room.amenities!.some(amenity => amenity.id === amenityId)
+        ))
       
       return matchesSearch && matchesHotels && matchesGuests && matchesPrice && matchesAmenities && room.isActive
     })
@@ -205,15 +219,23 @@ export default function AccommodationsPage() {
     })
 
   // Obtener icono de amenidad
-  const getAmenityIcon = (amenity: string) => {
-    const amenityObj = availableAmenities.find(a => a.name === amenity)
-    return amenityObj?.icon || Star
-  }
-
-  // Obtener label de amenidad
-  const getAmenityLabel = (amenity: string) => {
-    const amenityObj = availableAmenities.find(a => a.name === amenity)
-    return amenityObj?.label || amenity
+  const getAmenityIcon = (iconName: string) => {
+    const icons: { [key: string]: any } = {
+      'wifi': Wifi,
+      'ac': Star,
+      'tv': Star,
+      'minibar': Coffee,
+      'safe': Star,
+      'balcony': Star,
+      'ocean-view': Waves,
+      'city-view': Star,
+      'bathtub': Star,
+      'kitchenette': Star,
+      'pool': Waves,
+      'gym': Dumbbell,
+      'parking': Car
+    }
+    return icons[iconName] || Star
   }
 
   // Limpiar filtros
@@ -424,23 +446,27 @@ export default function AccommodationsPage() {
                     Amenidades
                   </label>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {availableAmenities.map((amenity) => (
-                      <label key={amenity.name} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={filters.amenities.includes(amenity.name)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFilters(prev => ({ ...prev, amenities: [...prev.amenities, amenity.name] }))
-                            } else {
-                              setFilters(prev => ({ ...prev, amenities: prev.amenities.filter(a => a !== amenity.name) }))
-                            }
-                          }}
-                          className="rounded border-gray-300 text-antigua-purple focus:ring-antigua-purple"
-                        />
-                        <span className="text-sm text-gray-700">{amenity.label}</span>
-                      </label>
-                    ))}
+                    {availableAmenities.map((amenity) => {
+                      const IconComponent = getAmenityIcon(amenity.icon)
+                      return (
+                        <label key={amenity.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                          <input
+                            type="checkbox"
+                            checked={filters.amenities.includes(amenity.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFilters(prev => ({ ...prev, amenities: [...prev.amenities, amenity.id] }))
+                              } else {
+                                setFilters(prev => ({ ...prev, amenities: prev.amenities.filter(id => id !== amenity.id) }))
+                              }
+                            }}
+                            className="rounded border-gray-300 text-antigua-purple focus:ring-antigua-purple"
+                          />
+                          <IconComponent className="h-4 w-4 text-antigua-purple" />
+                          <span className="text-sm text-gray-700">{amenity.name}</span>
+                        </label>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -533,19 +559,20 @@ export default function AccommodationsPage() {
                         </div>
 
                         {/* Amenities */}
-                        {room.roomType.amenities && room.roomType.amenities.length > 0 && (
+                        {room.amenities && room.amenities.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-4">
-                            {room.roomType.amenities.slice(0, 3).map((amenity) => {
-                              const IconComponent = getAmenityIcon(amenity)
+                            {room.amenities.slice(0, 3).map((amenity) => {
+                              const IconComponent = getAmenityIcon(amenity.icon)
                               return (
-                                <div key={amenity} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg text-xs">
+                                <div key={amenity.id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg text-xs">
                                   <IconComponent className="h-3 w-3" />
+                                  <span>{amenity.name}</span>
                                 </div>
                               )
                             })}
-                            {room.roomType.amenities.length > 3 && (
+                            {room.amenities.length > 3 && (
                               <div className="bg-gray-100 px-2 py-1 rounded-lg text-xs text-gray-600">
-                                +{room.roomType.amenities.length - 3}
+                                +{room.amenities.length - 3}
                               </div>
                             )}
                           </div>
@@ -613,18 +640,18 @@ export default function AccommodationsPage() {
 
                         <div className="flex justify-between items-center">
                           <div className="flex flex-wrap gap-2">
-                            {room.roomType.amenities && room.roomType.amenities.slice(0, 5).map((amenity) => {
-                              const IconComponent = getAmenityIcon(amenity)
+                            {room.amenities && room.amenities.slice(0, 5).map((amenity) => {
+                              const IconComponent = getAmenityIcon(amenity.icon)
                               return (
-                                <div key={amenity} className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg text-xs text-antigua-purple">
+                                <div key={amenity.id} className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg text-xs text-antigua-purple">
                                   <IconComponent className="h-3 w-3" />
-                                  <span>{getAmenityLabel(amenity)}</span>
+                                  <span>{amenity.name}</span>
                                 </div>
                               )
                             })}
-                            {room.roomType.amenities && room.roomType.amenities.length > 5 && (
+                            {room.amenities && room.amenities.length > 5 && (
                               <div className="bg-gray-100 px-2 py-1 rounded-lg text-xs text-gray-600">
-                                +{room.roomType.amenities.length - 5} más
+                                +{room.amenities.length - 5} más
                               </div>
                             )}
                           </div>

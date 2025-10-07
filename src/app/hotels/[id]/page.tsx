@@ -40,6 +40,12 @@ interface Room {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  amenities?: Array<{
+    id: string
+    name: string
+    icon: string
+    category: string
+  }>
   roomType: {
     id: string
     name: string
@@ -47,7 +53,6 @@ interface Room {
     occupancy: number
     bedConfiguration?: string
     description?: string
-    amenities?: string[]
     imageUrl?: string
   }
 }
@@ -98,10 +103,29 @@ export default function HotelDetailsPage() {
   })
   const [showFilters, setShowFilters] = useState(false)
 
-  // Amenidades específicas de habitación
-  const availableAmenities = [
-    'ac', 'tv', 'minibar', 'safe', 'balcony', 'ocean_view', 'city_view', 'bathtub', 'kitchenette'
-  ]
+  // Amenidades específicas de habitación - obtener dinámicamente
+  const [availableAmenities, setAvailableAmenities] = useState<Array<{
+    id: string
+    name: string
+    icon: string
+    category: string
+  }>>([])
+
+  // Cargar amenidades disponibles
+  useEffect(() => {
+    const fetchAmenities = async () => {
+      try {
+        const response = await fetch('/api/amenities?category=ROOM')
+        if (response.ok) {
+          const data = await response.json()
+          setAvailableAmenities(data.amenities || [])
+        }
+      } catch (error) {
+        console.error('Error fetching amenities:', error)
+      }
+    }
+    fetchAmenities()
+  }, [])
 
   // Cargar datos del hotel y habitaciones
   useEffect(() => {
@@ -144,41 +168,31 @@ export default function HotelDetailsPage() {
     const matchesMinPrice = roomPrice >= filters.minPrice
     const matchesMaxPrice = roomPrice <= filters.maxPrice
     const matchesAmenities = filters.amenities.length === 0 || 
-                            (room.roomType.amenities && filters.amenities.every(amenity => room.roomType.amenities!.includes(amenity)))
+                            (room.amenities && filters.amenities.every(amenityId => 
+                              room.amenities!.some(amenity => amenity.id === amenityId)
+                            ))
     
     return matchesGuests && matchesMinPrice && matchesMaxPrice && matchesAmenities && room.isActive
   })
 
-  // Obtener icono de amenidad específica de habitación
-  const getAmenityIcon = (amenity: string) => {
+  // Obtener icono de amenidad
+  const getAmenityIcon = (iconName: string) => {
     const icons: { [key: string]: any } = {
-      ac: Star,
-      tv: Star,
-      minibar: Star,
-      safe: Star,
-      balcony: Star,
-      ocean_view: Star,
-      city_view: Star,
-      bathtub: Star,
-      kitchenette: Star
+      'wifi': Wifi,
+      'ac': Star,
+      'tv': Star,
+      'minibar': Coffee,
+      'safe': Star,
+      'balcony': Star,
+      'ocean-view': Waves,
+      'city-view': Star,
+      'bathtub': Star,
+      'kitchenette': Star,
+      'pool': Waves,
+      'gym': Dumbbell,
+      'parking': Car
     }
-    return icons[amenity] || Star
-  }
-
-  // Obtener label de amenidad específica de habitación
-  const getAmenityLabel = (amenity: string) => {
-    const labels: { [key: string]: string } = {
-      ac: 'Aire Acondicionado',
-      tv: 'TV',
-      minibar: 'Minibar',
-      safe: 'Caja Fuerte',
-      balcony: 'Balcón',
-      ocean_view: 'Vista al Mar',
-      city_view: 'Vista a la Ciudad',
-      bathtub: 'Bañera',
-      kitchenette: 'Kitchenette'
-    }
-    return labels[amenity] || amenity
+    return icons[iconName] || Star
   }
 
   // Formatear tiempo
@@ -378,24 +392,28 @@ export default function HotelDetailsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('hotels.amenities')}
                   </label>
-                  <div className="space-y-2">
-                    {availableAmenities.map((amenity) => (
-                      <label key={amenity} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={filters.amenities.includes(amenity)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFilters(prev => ({ ...prev, amenities: [...prev.amenities, amenity] }))
-                            } else {
-                              setFilters(prev => ({ ...prev, amenities: prev.amenities.filter(a => a !== amenity) }))
-                            }
-                          }}
-                          className="rounded border-gray-300 text-antigua-purple focus:ring-antigua-purple"
-                        />
-                        <span className="text-sm text-gray-700">{getAmenityLabel(amenity)}</span>
-                      </label>
-                    ))}
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {availableAmenities.map((amenity) => {
+                      const IconComponent = getAmenityIcon(amenity.icon)
+                      return (
+                        <label key={amenity.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                          <input
+                            type="checkbox"
+                            checked={filters.amenities.includes(amenity.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFilters(prev => ({ ...prev, amenities: [...prev.amenities, amenity.id] }))
+                              } else {
+                                setFilters(prev => ({ ...prev, amenities: prev.amenities.filter(id => id !== amenity.id) }))
+                              }
+                            }}
+                            className="rounded border-gray-300 text-antigua-purple focus:ring-antigua-purple"
+                          />
+                          <IconComponent className="h-4 w-4 text-antigua-purple" />
+                          <span className="text-sm text-gray-700">{amenity.name}</span>
+                        </label>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -485,20 +503,20 @@ export default function HotelDetailsPage() {
                           )}
 
                           {/* Room Amenities */}
-                          {room.roomType.amenities && room.roomType.amenities.length > 0 && (
+                          {room.amenities && room.amenities.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-6">
-                              {room.roomType.amenities.slice(0, 6).map((amenity) => {
-                                const IconComponent = getAmenityIcon(amenity)
+                              {room.amenities.slice(0, 6).map((amenity) => {
+                                const IconComponent = getAmenityIcon(amenity.icon)
                                 return (
-                                  <div key={amenity} className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg text-xs text-antigua-purple">
+                                  <div key={amenity.id} className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-lg text-xs text-antigua-purple">
                                     <IconComponent className="h-3 w-3" />
-                                    <span>{getAmenityLabel(amenity)}</span>
+                                    <span>{amenity.name}</span>
                                   </div>
                                 )
                               })}
-                              {room.roomType.amenities.length > 6 && (
+                              {room.amenities.length > 6 && (
                                 <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg text-xs text-gray-600">
-                                  <span>+{room.roomType.amenities.length - 6} más</span>
+                                  <span>+{room.amenities.length - 6} más</span>
                                 </div>
                               )}
                             </div>

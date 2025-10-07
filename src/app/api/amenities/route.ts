@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
       createdAt: amenity.createdAt.toISOString(),
     }))
 
-    return NextResponse.json(serializedAmenities)
+    return NextResponse.json({
+      amenities: serializedAmenities
+    })
 
   } catch (error) {
     console.error('Error fetching amenities:', error)
@@ -39,3 +41,6 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+
+

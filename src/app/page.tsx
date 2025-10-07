@@ -283,18 +283,18 @@ export default function HomePage() {
       />
 
       {/* Featured Services */}
-      <section className="pt-20 pb-16 bg-white">
+      <section className="pt-12 sm:pt-16 lg:pt-20 pb-12 sm:pb-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               {t('home.featured.title')}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
               {t('home.featured.description')}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
             {translatedActivities.length > 0 ? (
               translatedActivities.map((activity: any, index: number) => (
                 <ServiceCard
@@ -325,27 +325,27 @@ export default function HomePage() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               {t('home.why_choose.title')}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
               {t('home.why_choose.description')}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {whyChooseUs.map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="h-8 w-8 text-antigua-purple" />
+              <div key={index} className="text-center px-2">
+                <div className="bg-purple-100 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <item.icon className="h-6 w-6 sm:h-8 sm:w-8 text-antigua-purple" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                   {item.title}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   {item.description}
                 </p>
               </div>
@@ -355,32 +355,31 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 bg-white">
+      <section className="py-12 sm:py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               {t('home.testimonials.title')}
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-base sm:text-lg text-gray-600 px-4">
               {t('home.testimonials.description')}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-gray-50 p-6 rounded-xl">
-                <div className="flex items-center mb-4">
+              <div key={index} className="bg-gray-50 p-4 sm:p-6 rounded-xl">
+                <div className="flex items-center mb-3 sm:mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                    <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 fill-current" />
                   ))}
                 </div>
-                <Quote className="h-8 w-8 text-yellow-400 mb-4" />
-                <p className="text-gray-700 mb-4 italic">
+                <Quote className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-400 mb-3 sm:mb-4" />
+                <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 italic">
                   "{testimonial.text}"
                 </p>
                 <div>
-                  <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                  <p className="text-gray-600 text-sm">{testimonial.location}</p>
+                  {/* Nombre y nacionalidad removidos */}
                 </div>
               </div>
             ))}
@@ -389,46 +388,46 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section - Modern & Impactful */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
         {/* Background with animated gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-antigua-purple via-purple-600 to-antigua-pink">
           <div className="absolute inset-0 bg-black/10"></div>
           {/* Animated background elements */}
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-yellow-300/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-48 h-48 sm:w-80 sm:h-80 bg-yellow-300/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
         </div>
         
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 text-center">
           {/* Main content with glass morphism effect */}
-          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 max-w-4xl mx-auto border border-white/20 shadow-2xl">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 max-w-4xl mx-auto border border-white/20 shadow-2xl">
             {/* Title with enhanced typography */}
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 text-white leading-tight">
               <span className="bg-gradient-to-r from-white via-yellow-200 to-white bg-clip-text text-transparent">
                 {t('home.cta.title')}
               </span>
             </h2>
             
             {/* Description with better spacing */}
-            <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto text-white/90 leading-relaxed font-light">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-12 max-w-3xl mx-auto text-white/90 leading-relaxed font-light px-2">
               {t('home.cta.description')}
             </p>
             
             {/* Modern buttons with enhanced styling */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
               {/* Primary CTA Button */}
               <Button 
                 asChild
                 size="lg"
-                className="group relative bg-white text-antigua-purple hover:bg-yellow-300 hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 shadow-2xl border-0 px-8 py-4 text-lg font-semibold rounded-2xl overflow-hidden"
+                className="group relative bg-white text-antigua-purple hover:bg-yellow-300 hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 shadow-2xl border-0 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl sm:rounded-2xl overflow-hidden w-full sm:w-auto"
               >
-                <Link href="/booking" className="flex items-center">
+                <Link href="/booking" className="flex items-center justify-center">
                   {/* Shimmer effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                   
-                  <Calendar className="mr-3 h-6 w-6 transition-transform duration-300 group-hover:rotate-12" />
+                  <Calendar className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:rotate-12" />
                   {t('home.cta.book_now')}
-                  <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </Button>
               
@@ -437,30 +436,30 @@ export default function HomePage() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="group relative border-2 border-white text-white hover:bg-white hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 backdrop-blur-sm px-8 py-4 text-lg font-semibold rounded-2xl overflow-hidden bg-white/5 hover:bg-white"
+                className="group relative border-2 border-white text-white hover:bg-white hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 backdrop-blur-sm px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl sm:rounded-2xl overflow-hidden bg-white/5 hover:bg-white w-full sm:w-auto"
               >
-                <Link href="/contact" className="flex items-center">
+                <Link href="/contact" className="flex items-center justify-center">
                   {/* Shimmer effect for secondary button */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                   
-                  <Phone className="mr-3 h-6 w-6 transition-transform duration-300 group-hover:scale-110" />
+                  <Phone className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:scale-110" />
                   {t('home.cta.contact')}
                 </Link>
               </Button>
             </div>
             
             {/* Trust indicators */}
-            <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-8 text-white/70 text-sm">
+            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-white/70 text-xs sm:text-sm">
               <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>{t('home.cta.trust.secure')}</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>{t('home.cta.trust.flexible')}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-300" />
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-300" />
                 <span>{t('home.cta.trust.reviews')}</span>
               </div>
             </div>
@@ -470,3 +469,6 @@ export default function HomePage() {
     </PublicLayout>
   )
 }
+
+
+

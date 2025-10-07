@@ -42,9 +42,62 @@ export default function PublicHeader() {
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
       {/* Top Bar */}
-      <div className="bg-gradient-to-r from-antigua-purple to-antigua-pink text-white py-2">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center text-sm">
+      <div className="bg-gradient-to-r from-antigua-purple to-antigua-pink text-white py-1 sm:py-2">
+        <div className="container mx-auto px-2 sm:px-4">
+          {/* Mobile Layout */}
+          <div className="flex sm:hidden items-center justify-between text-xs">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1">
+                <Phone className="h-3 w-3" />
+                <span className="truncate">{t('header.phone')}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Mail className="h-3 w-3" />
+                <span className="truncate">{t('header.email')}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              {/* Mobile Language Selector */}
+              <div className="relative" ref={languageDropdownRef}>
+                <button
+                  onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                  className="flex items-center space-x-1 hover:bg-white hover:bg-opacity-10 px-1 py-1 rounded transition-colors duration-200"
+                >
+                  <Globe className="h-3 w-3" />
+                  <span className="text-xs">
+                    {languages.find(lang => lang.code === currentLanguage)?.flag}
+                  </span>
+                  <ChevronDown className="h-2 w-2" />
+                </button>
+                
+                {/* Mobile Language Dropdown */}
+                {isLanguageOpen && (
+                  <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px] z-50">
+                    {languages.map((language) => (
+                      <button
+                        key={language.code}
+                        onClick={() => {
+                          setLanguage(language.code)
+                          setIsLanguageOpen(false)
+                          console.log(`Idioma cambiado a: ${language.name}`)
+                        }}
+                        className={`w-full text-left px-2 py-1 text-xs hover:bg-gray-50 flex items-center space-x-2 transition-colors duration-200 ${
+                          currentLanguage === language.code ? 'bg-antigua-purple bg-opacity-10 text-antigua-purple' : 'text-gray-700'
+                        }`}
+                      >
+                        <span>{language.flag}</span>
+                        <span>{language.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex flex-col md:flex-row justify-between items-center text-sm">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 mb-2 md:mb-0">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-1">
@@ -57,7 +110,7 @@ export default function PublicHeader() {
                 </div>
               </div>
               
-              {/* Language Selector */}
+              {/* Desktop Language Selector */}
               <div className="relative" ref={languageDropdownRef}>
                 <button
                   onClick={() => setIsLanguageOpen(!isLanguageOpen)}
@@ -73,7 +126,7 @@ export default function PublicHeader() {
                   <ChevronDown className="h-3 w-3" />
                 </button>
                 
-                {/* Language Dropdown */}
+                {/* Desktop Language Dropdown */}
                 {isLanguageOpen && (
                   <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] z-50">
                     {languages.map((language) => (

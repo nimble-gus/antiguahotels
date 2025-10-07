@@ -14,13 +14,18 @@ import {
   BarChart3,
   Image as ImageIcon,
   CreditCard,
-  LogOut
+  LogOut,
+  ExternalLink,
+  Shield,
+  Zap
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Reservaciones', href: '/dashboard/reservations', icon: Calendar },
+  { name: 'Reservaciones Externas', href: '/dashboard/external-bookings', icon: ExternalLink },
+  { name: 'Bloques de Disponibilidad', href: '/dashboard/availability-blocks', icon: Shield },
   { name: 'Hoteles', href: '/dashboard/hotels', icon: Hotel },
   { name: 'Actividades', href: '/dashboard/activities', icon: MapPin },
   { name: 'Paquetes', href: '/dashboard/packages', icon: Package },
@@ -29,7 +34,9 @@ const navigation = [
   { name: 'Pagos', href: '/dashboard/payments', icon: CreditCard },
   { name: 'Gestión de Imágenes', href: '/dashboard/images', icon: ImageIcon },
   { name: 'Imágenes del Sitio', href: '/dashboard/website-images', icon: ImageIcon },
+  { name: 'Imágenes Habitaciones', href: '/dashboard/room-types/images', icon: ImageIcon },
   { name: 'Usuarios Admin', href: '/dashboard/admin-users', icon: Users },
+  { name: 'Integración Booking.com', href: '/dashboard/integration', icon: Zap },
   { name: 'Reportes', href: '/dashboard/reports', icon: BarChart3 },
   { name: 'Configuración', href: '/dashboard/settings', icon: Settings },
 ]

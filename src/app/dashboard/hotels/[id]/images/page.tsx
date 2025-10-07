@@ -182,3 +182,6 @@ export default function HotelImagesPage() {
     </div>
   )
 }
+
+
+

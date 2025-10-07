@@ -37,3 +37,6 @@ export function getAvailableTemplates(): string[] {
     emailTemplates[name as EmailTemplateName] !== null
   )
 }
+
+
+

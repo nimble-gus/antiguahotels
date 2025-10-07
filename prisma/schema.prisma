@@ -1,4 +1,3 @@
-// Prisma Schema para Antigua Hotels Admin Dashboard
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,61 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// =========================================================
-// USUARIOS Y ADMINISTRADORES
-// =========================================================
-
 model AdminUser {
-  id           BigInt    @id @default(autoincrement())
-  username     String    @unique @db.VarChar(50)
-  email        String    @unique @db.VarChar(160)
-  passwordHash String    @map("password_hash") @db.VarChar(255)
-  firstName    String    @map("first_name") @db.VarChar(80)
-  lastName     String    @map("last_name") @db.VarChar(80)
-  role         AdminRole @default(ADMIN)
-  isActive     Boolean   @default(true) @map("is_active") @db.TinyInt
-  lastLogin    DateTime? @map("last_login")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  systemSettings   SystemSetting[]
-  activityLogs     ActivityLog[]
-  notificationLogs NotificationLog[]
-  notificationQueue NotificationQueue[]
+  id                 BigInt              @id @default(autoincrement())
+  username           String              @unique @db.VarChar(50)
+  email              String              @unique @db.VarChar(160)
+  passwordHash       String              @map("password_hash") @db.VarChar(255)
+  firstName          String              @map("first_name") @db.VarChar(80)
+  lastName           String              @map("last_name") @db.VarChar(80)
+  role               AdminRole           @default(ADMIN)
+  isActive           Boolean             @default(true) @map("is_active")
+  lastLogin          DateTime?           @map("last_login")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  activityLogs       ActivityLog[]
+  availabilityBlocks AvailabilityBlock[]
+  notificationLogs   NotificationLog[]
+  notificationQueue  NotificationQueue[]
+  systemSettings     SystemSetting[]
 
   @@map("admin_users")
 }
 
-enum AdminRole {
-  ADMIN
-  SUPER_ADMIN
-}
-
-// =========================================================
-// SISTEMA DE AMENIDADES
-// =========================================================
-
 model Amenity {
-  id          BigInt         @id @default(autoincrement())
-  name        String         @db.VarChar(80)
-  description String?        @db.Text
-  icon        String?        @db.VarChar(50)
-  category    AmenityCategory
-  isActive    Boolean        @default(true) @map("is_active") @db.TinyInt
-  createdAt   DateTime       @default(now()) @map("created_at")
-
-  // Relations
+  id              BigInt          @id @default(autoincrement())
+  name            String          @db.VarChar(80)
+  description     String?         @db.Text
+  icon            String?         @db.VarChar(50)
+  category        AmenityCategory
+  isActive        Boolean         @default(true) @map("is_active")
+  createdAt       DateTime        @default(now()) @map("created_at")
   entityAmenities EntityAmenity[]
 
   @@map("amenities")
-}
-
-enum AmenityCategory {
-  HOTEL
-  ROOM
-  ACTIVITY
-  GENERAL
 }
 
 model EntityAmenity {
@@ -71,12 +47,751 @@ model EntityAmenity {
   entityId   BigInt     @map("entity_id")
   amenityId  BigInt     @map("amenity_id")
   createdAt  DateTime   @default(now()) @map("created_at")
-
-  // Relations
-  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  amenity    Amenity    @relation(fields: [amenityId], references: [id], onDelete: Cascade)
 
   @@unique([entityType, entityId, amenityId])
+  @@index([entityId], map: "fk_entity_amenities_room")
+  @@index([amenityId], map: "idx_entity_amenities_amenity")
   @@map("entity_amenities")
+}
+
+model EntityImage {
+  id                 BigInt     @id @default(autoincrement())
+  entityType         EntityType @map("entity_type")
+  entityId           BigInt     @map("entity_id")
+  imageUrl           String     @map("image_url") @db.VarChar(500)
+  cloudinaryPublicId String?    @map("cloudinary_public_id") @db.VarChar(255)
+  altText            String?    @map("alt_text") @db.VarChar(255)
+  isPrimary          Boolean    @default(false) @map("is_primary")
+  displayOrder       Int        @default(0) @map("display_order")
+  createdAt          DateTime   @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([entityType, entityId], map: "idx_entity_images_type_id")
+  @@map("entity_images")
+}
+
+model Hotel {
+  id                 BigInt              @id @default(autoincrement())
+  name               String              @db.VarChar(120)
+  code               String?             @unique @db.VarChar(20)
+  brand              String?             @db.VarChar(80)
+  description        String?             @db.Text
+  logoUrl            String?             @map("logo_url") @db.VarChar(500)
+  address            String?             @db.Text
+  city               String?             @db.VarChar(80)
+  country            String?             @default("Guatemala") @db.VarChar(60)
+  postalCode         String?             @map("postal_code") @db.VarChar(20)
+  latitude           Decimal?            @db.Decimal(10, 8)
+  longitude          Decimal?            @db.Decimal(11, 8)
+  wazeLink           String?             @map("waze_link") @db.Text
+  googleMapsLink     String?             @map("google_maps_link") @db.Text
+  phone              String?             @db.VarChar(40)
+  email              String?             @db.VarChar(160)
+  website            String?             @db.VarChar(255)
+  checkInTime        DateTime?           @default(dbgenerated("'15:00:00'")) @map("check_in_time") @db.Time(0)
+  checkOutTime       DateTime?           @default(dbgenerated("'11:00:00'")) @map("check_out_time") @db.Time(0)
+  rating             Decimal?            @default(0.0) @db.Decimal(2, 1)
+  totalRooms         Int                 @default(0) @map("total_rooms")
+  timezone           String              @default("America/Guatemala") @db.VarChar(40)
+  isActive           Boolean             @default(true) @map("is_active")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  accommodationStays AccommodationStay[]
+  availabilityBlocks AvailabilityBlock[]
+  externalBookings   ExternalBooking[]
+  packageHotels      PackageHotel[]
+  platformSyncs      PlatformSync[]
+  roomTypes          RoomType[]
+  rooms              Room[]
+  shuttleRoutes      ShuttleRoute[]
+
+  @@map("hotels")
+}
+
+model RoomType {
+  id                 BigInt              @id @default(autoincrement())
+  hotelId            BigInt              @map("hotel_id")
+  name               String              @db.VarChar(80)
+  description        String?             @db.Text
+  occupancy          Int
+  maxAdults          Int                 @map("max_adults")
+  maxChildren        Int                 @default(0) @map("max_children")
+  bedConfiguration   String?             @map("bed_configuration") @db.VarChar(200)
+  roomSizeSqm        Int?                @map("room_size_sqm")
+  baseRate           Decimal             @map("base_rate") @db.Decimal(12, 2)
+  currency           String              @default("USD") @db.Char(3)
+  isActive           Boolean             @default(true) @map("is_active")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  accommodationStays AccommodationStay[]
+  availabilityBlocks AvailabilityBlock[]
+  externalBookings   ExternalBooking[]
+  packageHotels      PackageHotel[]
+  hotel              Hotel               @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  rooms              Room[]
+
+  @@unique([hotelId, name])
+  @@index([hotelId], map: "idx_room_types_hotel")
+  @@map("room_types")
+}
+
+model Room {
+  id                 BigInt              @id @default(autoincrement())
+  hotelId            BigInt              @map("hotel_id")
+  roomTypeId         BigInt              @map("room_type_id")
+  code               String              @db.VarChar(40)
+  floorNumber        Int?                @map("floor_number")
+  isActive           Boolean             @default(true) @map("is_active")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  accommodationStays AccommodationStay[]
+  roomInventory      RoomInventory[]
+  hotel              Hotel               @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  roomType           RoomType            @relation(fields: [roomTypeId], references: [id])
+
+  @@unique([hotelId, code])
+  @@index([hotelId], map: "idx_rooms_hotel")
+  @@index([roomTypeId], map: "idx_rooms_room_type")
+  @@map("rooms")
+}
+
+model RoomInventory {
+  id                BigInt           @id @default(autoincrement())
+  roomId            BigInt           @map("room_id")
+  stayDate          DateTime         @map("stay_date") @db.Date
+  isBlocked         Boolean          @default(false) @map("is_blocked")
+  priceOverride     Decimal?         @map("price_override") @db.Decimal(12, 2)
+  reservationItemId BigInt?          @map("reservation_item_id")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  reservationItem   ReservationItem? @relation(fields: [reservationItemId], references: [id])
+  room              Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, stayDate])
+  @@index([reservationItemId], map: "idx_room_inventory_resitem")
+  @@map("room_inventory")
+}
+
+model Activity {
+  id                 BigInt             @id @default(autoincrement())
+  name               String             @db.VarChar(140)
+  description        String?            @db.Text
+  shortDescription   String?            @map("short_description") @db.VarChar(500)
+  durationHours      Decimal?           @map("duration_hours") @db.Decimal(4, 2)
+  minParticipants    Int                @default(1) @map("min_participants")
+  maxParticipants    Int?               @map("max_participants")
+  basePrice          Decimal            @map("base_price") @db.Decimal(12, 2)
+  currency           String             @default("USD") @db.Char(3)
+  ageRestriction     String?            @map("age_restriction") @db.VarChar(100)
+  difficultyLevel    DifficultyLevel?   @map("difficulty_level")
+  location           String?            @db.VarChar(255)
+  meetingPoint       String?            @map("meeting_point") @db.Text
+  whatIncludes       String?            @map("what_includes") @db.Text
+  whatToBring        String?            @map("what_to_bring") @db.Text
+  cancellationPolicy String?            @map("cancellation_policy") @db.Text
+  isActive           Boolean            @default(true) @map("is_active")
+  isFeatured         Boolean            @default(false) @map("is_featured")
+  featuredOrder      Int?               @map("featured_order")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  activityBookings   ActivityBooking[]
+  activitySchedules  ActivitySchedule[]
+  packageActivities  PackageActivity[]
+
+  @@map("activities")
+}
+
+model ActivitySchedule {
+  id               BigInt            @id @default(autoincrement())
+  activityId       BigInt            @map("activity_id")
+  date             DateTime          @db.Date
+  startTime        DateTime          @map("start_time") @db.Time(0)
+  endTime          DateTime          @map("end_time") @db.Time(0)
+  availableSpots   Int               @map("available_spots")
+  priceOverride    Decimal?          @map("price_override") @db.Decimal(12, 2)
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  activityBookings ActivityBooking[]
+  activity         Activity          @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@index([activityId], map: "idx_activity_schedules_activity")
+  @@map("activity_schedules")
+}
+
+model Package {
+  id                 BigInt            @id @default(autoincrement())
+  name               String            @unique @db.VarChar(140)
+  description        String?           @db.Text
+  shortDescription   String?           @map("short_description") @db.VarChar(500)
+  durationDays       Int               @map("duration_days")
+  durationNights     Int               @map("duration_nights")
+  minParticipants    Int               @default(1) @map("min_participants")
+  maxParticipants    Int?              @map("max_participants")
+  basePrice          Decimal           @map("base_price") @db.Decimal(12, 2)
+  pricePerCouple     Decimal?          @map("price_per_couple") @db.Decimal(12, 2)
+  currency           String            @default("USD") @db.Char(3)
+  capacity           Int?
+  whatIncludes       String?           @map("what_includes") @db.Text
+  whatExcludes       String?           @map("what_excludes") @db.Text
+  itinerary          String?           @db.Text
+  cancellationPolicy String?           @map("cancellation_policy") @db.Text
+  active             Boolean           @default(true)
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+  packageActivities  PackageActivity[]
+  packageBookings    PackageBooking[]
+  packageHotels      PackageHotel[]
+  packageSessions    PackageSession[]
+
+  @@map("packages")
+}
+
+model PackageSession {
+  id              BigInt           @id @default(autoincrement())
+  packageId       BigInt           @map("package_id")
+  startTs         DateTime         @map("start_ts")
+  endTs           DateTime         @map("end_ts")
+  capacity        Int?
+  priceOverride   Decimal?         @map("price_override") @db.Decimal(12, 2)
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  packageBookings PackageBooking[]
+  package         Package          @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, startTs])
+  @@index([packageId], map: "idx_package_sessions_pkg")
+  @@map("package_sessions")
+}
+
+model PackageHotel {
+  id         BigInt   @id @default(autoincrement())
+  packageId  BigInt   @map("package_id")
+  hotelId    BigInt   @map("hotel_id")
+  roomTypeId BigInt   @map("room_type_id")
+  nights     Int
+  checkInDay Int      @map("check_in_day")
+  createdAt  DateTime @default(now()) @map("created_at")
+  hotel      Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  package    Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId], map: "idx_package_hotels_hotel")
+  @@index([packageId], map: "idx_package_hotels_package")
+  @@index([roomTypeId], map: "package_hotels_room_type_id_fkey")
+  @@map("package_hotels")
+}
+
+model PackageActivity {
+  id                   BigInt   @id @default(autoincrement())
+  packageId            BigInt   @map("package_id")
+  activityId           BigInt   @map("activity_id")
+  dayNumber            Int      @map("day_number")
+  participantsIncluded Int?     @map("participants_included")
+  createdAt            DateTime @default(now()) @map("created_at")
+  activity             Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  package              Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([activityId], map: "idx_package_activities_activity")
+  @@index([packageId], map: "idx_package_activities_package")
+  @@map("package_activities")
+}
+
+model Airport {
+  id            BigInt         @id @default(autoincrement())
+  iata          String?        @unique @db.Char(3)
+  name          String         @db.VarChar(120)
+  city          String?        @db.VarChar(80)
+  country       String?        @db.VarChar(60)
+  isActive      Boolean        @default(true) @map("is_active")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  shuttleRoutes ShuttleRoute[]
+
+  @@map("airports")
+}
+
+model ShuttleRoute {
+  id                       BigInt                @id @default(autoincrement())
+  name                     String                @db.VarChar(140)
+  description              String?               @db.Text
+  fromAirportId            BigInt                @map("from_airport_id")
+  toHotelId                BigInt                @map("to_hotel_id")
+  direction                ShuttleDirection
+  distanceKm               Decimal?              @map("distance_km") @db.Decimal(6, 2)
+  estimatedDurationMinutes Int?                  @map("estimated_duration_minutes")
+  basePrice                Decimal               @map("base_price") @db.Decimal(12, 2)
+  currency                 String                @default("USD") @db.Char(3)
+  isShared                 Boolean               @default(true) @map("is_shared")
+  maxPassengers            Int                   @default(8) @map("max_passengers")
+  vehicleType              String?               @map("vehicle_type") @db.VarChar(100)
+  isActive                 Boolean               @default(true) @map("is_active")
+  createdAt                DateTime              @default(now()) @map("created_at")
+  updatedAt                DateTime              @updatedAt @map("updated_at")
+  shuttleAvailability      ShuttleAvailability[]
+  fromAirport              Airport               @relation(fields: [fromAirportId], references: [id])
+  toHotel                  Hotel                 @relation(fields: [toHotelId], references: [id])
+  shuttleSchedules         ShuttleSchedule[]
+  shuttleTransfers         ShuttleTransfer[]
+
+  @@unique([fromAirportId, toHotelId, direction, isShared])
+  @@index([fromAirportId], map: "idx_shuttle_routes_airport")
+  @@index([toHotelId], map: "idx_shuttle_routes_hotel")
+  @@map("shuttle_routes")
+}
+
+model ShuttleSchedule {
+  id            BigInt       @id @default(autoincrement())
+  routeId       BigInt       @map("route_id")
+  departureTime DateTime     @map("departure_time") @db.Time(0)
+  daysOfWeek    String       @map("days_of_week") @db.VarChar(20)
+  isActive      Boolean      @default(true) @map("is_active")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  route         ShuttleRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@index([routeId], map: "idx_shuttle_schedules_route")
+  @@map("shuttle_schedules")
+}
+
+model ShuttleAvailability {
+  id               BigInt            @id @default(autoincrement())
+  routeId          BigInt            @map("route_id")
+  date             DateTime          @db.Date
+  departureTime    DateTime          @map("departure_time") @db.Time(0)
+  availableSeats   Int               @map("available_seats")
+  priceOverride    Decimal?          @map("price_override") @db.Decimal(12, 2)
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  route            ShuttleRoute      @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  shuttleTransfers ShuttleTransfer[]
+
+  @@index([routeId], map: "idx_shuttle_availability_route")
+  @@map("shuttle_availability")
+}
+
+model Guest {
+  id                BigInt              @id @default(autoincrement())
+  firstName         String              @map("first_name") @db.VarChar(80)
+  lastName          String              @map("last_name") @db.VarChar(80)
+  email             String?             @db.VarChar(160)
+  phone             String?             @db.VarChar(40)
+  country           String?             @db.VarChar(60)
+  dateOfBirth       DateTime?           @map("date_of_birth") @db.Date
+  passportNumber    String?             @map("passport_number") @db.VarChar(50)
+  nationality       String?             @db.VarChar(60)
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  notificationLogs  NotificationLog[]
+  notificationQueue NotificationQueue[]
+  reservations      Reservation[]
+
+  @@map("guests")
+}
+
+model Reservation {
+  id                 BigInt              @id @default(autoincrement())
+  confirmationNumber String              @unique @map("confirmation_number") @db.VarChar(20)
+  guestId            BigInt              @map("guest_id")
+  status             ReservationStatus   @default(PENDING)
+  checkin            DateTime?           @db.Date
+  checkout           DateTime?           @db.Date
+  currency           String              @default("USD") @db.Char(3)
+  totalAmount        Decimal             @default(0.00) @map("total_amount") @db.Decimal(12, 2)
+  paymentStatus      PaymentStatus       @default(PENDING) @map("payment_status")
+  specialRequests    String?             @map("special_requests") @db.Text
+  notes              String?             @db.Text
+  source             String              @default("WEBSITE") @db.VarChar(50)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  notificationLogs   NotificationLog[]
+  notificationQueue  NotificationQueue[]
+  payments           Payment[]
+  reservationItems   ReservationItem[]
+  guest              Guest               @relation(fields: [guestId], references: [id])
+
+  @@index([guestId], map: "idx_reservations_guest")
+  @@map("reservations")
+}
+
+model ReservationItem {
+  id                BigInt              @id @default(autoincrement())
+  reservationId     BigInt              @map("reservation_id")
+  itemType          ReservationItemType @map("item_type")
+  title             String              @db.VarChar(140)
+  quantity          Int                 @default(1)
+  unitPrice         Decimal             @map("unit_price") @db.Decimal(12, 2)
+  amount            Decimal             @db.Decimal(12, 2)
+  meta              Json?
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  accommodationStay AccommodationStay?
+  activityBooking   ActivityBooking?
+  packageBooking    PackageBooking?
+  reservation       Reservation         @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  roomInventory     RoomInventory[]
+  shuttleTransfer   ShuttleTransfer?
+
+  @@index([reservationId], map: "idx_resitems_reservation")
+  @@map("reservation_items")
+}
+
+model AccommodationStay {
+  id                BigInt          @id @default(autoincrement())
+  reservationItemId BigInt          @unique @map("reservation_item_id")
+  hotelId           BigInt          @map("hotel_id")
+  roomTypeId        BigInt          @map("room_type_id")
+  assignedRoomId    BigInt?         @map("assigned_room_id")
+  adults            Int             @default(1)
+  children          Int             @default(0)
+  checkInDate       DateTime        @map("check_in_date") @db.Date
+  checkOutDate      DateTime        @map("check_out_date") @db.Date
+  nights            Int
+  guestName         String?         @map("guest_name") @db.VarChar(160)
+  createdAt         DateTime        @default(now()) @map("created_at")
+  assignedRoom      Room?           @relation(fields: [assignedRoomId], references: [id])
+  hotel             Hotel           @relation(fields: [hotelId], references: [id])
+  reservationItem   ReservationItem @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
+  roomType          RoomType        @relation(fields: [roomTypeId], references: [id])
+
+  @@index([hotelId], map: "idx_acc_stay_hotel")
+  @@index([assignedRoomId], map: "idx_acc_stay_room")
+  @@index([roomTypeId], map: "idx_acc_stay_roomtype")
+  @@map("accommodation_stays")
+}
+
+model PackageBooking {
+  id                BigInt          @id @default(autoincrement())
+  reservationItemId BigInt          @unique @map("reservation_item_id")
+  packageId         BigInt          @map("package_id")
+  sessionId         BigInt?         @map("session_id")
+  startTs           DateTime?       @map("start_ts")
+  endTs             DateTime?       @map("end_ts")
+  pax               Int             @default(1)
+  participantNames  String?         @map("participant_names") @db.Text
+  createdAt         DateTime        @default(now()) @map("created_at")
+  package           Package         @relation(fields: [packageId], references: [id])
+  reservationItem   ReservationItem @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
+  session           PackageSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([packageId], map: "idx_pack_book_pkg")
+  @@index([sessionId], map: "idx_pack_book_session")
+  @@map("package_bookings")
+}
+
+model ShuttleTransfer {
+  id                BigInt               @id @default(autoincrement())
+  reservationItemId BigInt               @unique @map("reservation_item_id")
+  shuttleRouteId    BigInt               @map("shuttle_route_id")
+  availabilityId    BigInt?              @map("availability_id")
+  transferTs        DateTime             @map("transfer_ts")
+  passengers        Int                  @default(1)
+  passengerNames    String?              @map("passenger_names") @db.Text
+  flightNumber      String?              @map("flight_number") @db.VarChar(20)
+  pickupLocation    String?              @map("pickup_location") @db.VarChar(255)
+  dropoffLocation   String?              @map("dropoff_location") @db.VarChar(255)
+  notes             String?              @db.Text
+  createdAt         DateTime             @default(now()) @map("created_at")
+  availability      ShuttleAvailability? @relation(fields: [availabilityId], references: [id])
+  reservationItem   ReservationItem      @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
+  shuttleRoute      ShuttleRoute         @relation(fields: [shuttleRouteId], references: [id])
+
+  @@index([availabilityId], map: "idx_shuttle_trans_availability")
+  @@index([shuttleRouteId], map: "idx_shuttle_trans_route")
+  @@map("shuttle_transfers")
+}
+
+model ActivityBooking {
+  id                BigInt            @id @default(autoincrement())
+  reservationItemId BigInt            @unique @map("reservation_item_id")
+  activityId        BigInt            @map("activity_id")
+  scheduleId        BigInt?           @map("schedule_id")
+  activityDate      DateTime          @map("activity_date") @db.Date
+  startTime         DateTime          @map("start_time") @db.Time(0)
+  participants      Int
+  participantNames  String?           @map("participant_names") @db.Text
+  emergencyContact  String?           @map("emergency_contact") @db.VarChar(200)
+  emergencyPhone    String?           @map("emergency_phone") @db.VarChar(40)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  activity          Activity          @relation(fields: [activityId], references: [id])
+  reservationItem   ReservationItem   @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
+  schedule          ActivitySchedule? @relation(fields: [scheduleId], references: [id])
+
+  @@index([activityId], map: "idx_activity_book_activity")
+  @@index([scheduleId], map: "idx_activity_book_schedule")
+  @@map("activity_bookings")
+}
+
+model Payment {
+  id              BigInt        @id @default(autoincrement())
+  reservationId   BigInt        @map("reservation_id")
+  paymentIntentId String?       @map("payment_intent_id") @db.VarChar(120)
+  provider        String        @db.VarChar(30)
+  status          PaymentStatus
+  paymentMethod   PaymentMethod @map("payment_method")
+  amount          Decimal       @db.Decimal(12, 2)
+  currency        String        @default("USD") @db.Char(3)
+  txnRef          String?       @map("txn_ref") @db.VarChar(120)
+  gatewayResponse Json?         @map("gateway_response")
+  processedAt     DateTime?     @map("processed_at")
+  notes           String?       @db.Text
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  reservation     Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId], map: "idx_payments_reservation")
+  @@map("payments")
+}
+
+model SystemSetting {
+  id             BigInt     @id @default(autoincrement())
+  settingKey     String     @unique @map("setting_key") @db.VarChar(100)
+  settingValue   String     @map("setting_value") @db.Text
+  dataType       DataType   @default(STRING) @map("data_type")
+  description    String?    @db.Text
+  isPublic       Boolean    @default(false) @map("is_public")
+  updatedBy      BigInt?    @map("updated_by")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  updatedByAdmin AdminUser? @relation(fields: [updatedBy], references: [id])
+
+  @@index([updatedBy], map: "system_settings_updated_by_fkey")
+  @@map("system_settings")
+}
+
+model ActivityLog {
+  id          BigInt     @id @default(autoincrement())
+  adminUserId BigInt?    @map("admin_user_id")
+  action      String     @db.VarChar(100)
+  tableName   String?    @map("table_name") @db.VarChar(50)
+  recordId    BigInt?    @map("record_id")
+  oldValues   Json?      @map("old_values")
+  newValues   Json?      @map("new_values")
+  ipAddress   String?    @map("ip_address") @db.VarChar(45)
+  userAgent   String?    @map("user_agent") @db.Text
+  createdAt   DateTime   @default(now()) @map("created_at")
+  adminUser   AdminUser? @relation(fields: [adminUserId], references: [id])
+
+  @@index([adminUserId], map: "idx_activity_logs_admin")
+  @@map("activity_logs")
+}
+
+model NotificationSetting {
+  id            BigInt                @id @default(autoincrement())
+  type          NotificationType
+  eventType     String                @map("event_type") @db.VarChar(50)
+  isEnabled     Boolean               @default(true) @map("is_enabled")
+  recipientType NotificationRecipient @map("recipient_type")
+  templateName  String                @map("template_name") @db.VarChar(50)
+  delayMinutes  Int                   @default(0) @map("delay_minutes")
+  createdAt     DateTime              @default(now()) @map("created_at")
+  updatedAt     DateTime              @updatedAt @map("updated_at")
+
+  @@unique([type, eventType, recipientType], name: "unique_notification")
+  @@map("notification_settings")
+}
+
+model NotificationLog {
+  id             BigInt             @id @default(autoincrement())
+  type           NotificationType
+  eventType      String             @map("event_type") @db.VarChar(50)
+  recipientEmail String?            @map("recipient_email") @db.VarChar(255)
+  recipientPhone String?            @map("recipient_phone") @db.VarChar(20)
+  templateName   String             @map("template_name") @db.VarChar(50)
+  status         NotificationStatus @default(PENDING)
+  providerId     String?            @map("provider_id") @db.VarChar(100)
+  errorMessage   String?            @map("error_message") @db.Text
+  sentAt         DateTime?          @map("sent_at")
+  openedAt       DateTime?          @map("opened_at")
+  clickedAt      DateTime?          @map("clicked_at")
+  reservationId  BigInt?            @map("reservation_id")
+  guestId        BigInt?            @map("guest_id")
+  adminUserId    BigInt?            @map("admin_user_id")
+  metadata       Json?
+  createdAt      DateTime           @default(now()) @map("created_at")
+  adminUser      AdminUser?         @relation(fields: [adminUserId], references: [id])
+  guest          Guest?             @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  reservation    Reservation?       @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId], map: "idx_reservation")
+  @@index([status], map: "idx_status")
+  @@index([eventType], map: "idx_event_type")
+  @@index([recipientEmail], map: "idx_recipient_email")
+  @@index([sentAt], map: "idx_sent_at")
+  @@index([adminUserId], map: "notification_logs_admin_user_id_fkey")
+  @@index([guestId], map: "notification_logs_guest_id_fkey")
+  @@map("notification_logs")
+}
+
+model NotificationQueue {
+  id             BigInt                  @id @default(autoincrement())
+  type           NotificationType
+  eventType      String                  @map("event_type") @db.VarChar(50)
+  recipientEmail String?                 @map("recipient_email") @db.VarChar(255)
+  recipientPhone String?                 @map("recipient_phone") @db.VarChar(20)
+  templateName   String                  @map("template_name") @db.VarChar(50)
+  templateData   Json                    @map("template_data")
+  scheduledFor   DateTime                @map("scheduled_for")
+  attempts       Int                     @default(0)
+  maxAttempts    Int                     @default(3) @map("max_attempts")
+  status         NotificationQueueStatus @default(PENDING)
+  errorMessage   String?                 @map("error_message") @db.Text
+  reservationId  BigInt?                 @map("reservation_id")
+  guestId        BigInt?                 @map("guest_id")
+  adminUserId    BigInt?                 @map("admin_user_id")
+  createdAt      DateTime                @default(now()) @map("created_at")
+  adminUser      AdminUser?              @relation(fields: [adminUserId], references: [id])
+  guest          Guest?                  @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  reservation    Reservation?            @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledFor, status], map: "idx_scheduled")
+  @@index([status], map: "idx_status")
+  @@index([reservationId], map: "idx_reservation")
+  @@index([adminUserId], map: "notification_queue_admin_user_id_fkey")
+  @@index([guestId], map: "notification_queue_guest_id_fkey")
+  @@map("notification_queue")
+}
+
+model WebsiteImage {
+  id                 BigInt   @id @default(autoincrement())
+  imageKey           String   @unique @map("image_key") @db.VarChar(100)
+  title              String   @db.VarChar(255)
+  description        String?  @db.Text
+  imageUrl           String   @map("image_url") @db.VarChar(500)
+  cloudinaryPublicId String   @map("cloudinary_public_id") @db.VarChar(255)
+  altText            String?  @map("alt_text") @db.VarChar(255)
+  isActive           Boolean  @default(true) @map("is_active")
+  sortOrder          Int      @default(0) @map("sort_order")
+  pageSection        String   @default("hero") @map("page_section") @db.VarChar(50)
+  pageType           String   @default("home") @map("page_type") @db.VarChar(50)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([pageType], map: "idx_page_type")
+  @@index([pageSection], map: "idx_page_section")
+  @@index([isActive], map: "idx_is_active")
+  @@index([sortOrder], map: "idx_sort_order")
+  @@map("website_images")
+}
+
+model ExternalBooking {
+  id                   BigInt                @id @default(autoincrement())
+  externalId           String                @unique @map("external_id") @db.VarChar(100)
+  platform             ExternalPlatform      @default(BOOKING_COM)
+  confirmationNumber   String                @map("confirmation_number") @db.VarChar(50)
+  hotelId              BigInt                @map("hotel_id")
+  roomTypeId           BigInt?               @map("room_type_id")
+  guestName            String                @map("guest_name") @db.VarChar(160)
+  guestEmail           String?               @map("guest_email") @db.VarChar(160)
+  guestPhone           String?               @map("guest_phone") @db.VarChar(50)
+  checkIn              DateTime              @map("check_in") @db.Date
+  checkOut             DateTime              @map("check_out") @db.Date
+  adults               Int                   @default(1)
+  children             Int                   @default(0)
+  rooms                Int                   @default(1)
+  totalAmount          Decimal               @map("total_amount") @db.Decimal(12, 2)
+  currency             String                @default("USD") @db.Char(3)
+  status               ExternalBookingStatus @default(CONFIRMED)
+  platformStatus       String?               @map("platform_status") @db.VarChar(50)
+  specialRequests      String?               @map("special_requests") @db.Text
+  notes                String?               @db.Text
+  isActive             Boolean               @default(true) @map("is_active")
+  lastSyncAt           DateTime?             @map("last_sync_at")
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
+  externalBookingItems ExternalBookingItem[]
+  hotel                Hotel                 @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  roomType             RoomType?             @relation(fields: [roomTypeId], references: [id])
+
+  @@index([platform], map: "idx_platform")
+  @@index([hotelId], map: "idx_hotel")
+  @@index([checkIn], map: "idx_check_in")
+  @@index([checkOut], map: "idx_check_out")
+  @@index([status], map: "idx_status")
+  @@index([externalId], map: "idx_external_id")
+  @@index([roomTypeId], map: "external_bookings_room_type_id_fkey")
+  @@map("external_bookings")
+}
+
+model ExternalBookingItem {
+  id                BigInt           @id @default(autoincrement())
+  externalBookingId BigInt           @map("external_booking_id")
+  itemType          ExternalItemType @map("item_type")
+  title             String           @db.VarChar(140)
+  description       String?          @db.Text
+  quantity          Int              @default(1)
+  unitPrice         Decimal          @map("unit_price") @db.Decimal(12, 2)
+  totalPrice        Decimal          @map("total_price") @db.Decimal(12, 2)
+  currency          String           @default("USD") @db.Char(3)
+  serviceDate       DateTime?        @map("service_date") @db.Date
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  externalBooking   ExternalBooking  @relation(fields: [externalBookingId], references: [id], onDelete: Cascade)
+
+  @@index([externalBookingId], map: "idx_external_booking")
+  @@index([itemType], map: "idx_item_type")
+  @@map("external_booking_items")
+}
+
+model AvailabilityBlock {
+  id          BigInt                @id @default(autoincrement())
+  hotelId     BigInt                @map("hotel_id")
+  roomTypeId  BigInt?               @map("room_type_id")
+  startDate   DateTime              @map("start_date") @db.Date
+  endDate     DateTime              @map("end_date") @db.Date
+  blockType   AvailabilityBlockType @map("block_type")
+  reason      String?               @db.VarChar(255)
+  description String?               @db.Text
+  isActive    Boolean               @default(true) @map("is_active")
+  createdBy   BigInt                @map("created_by")
+  createdAt   DateTime              @default(now()) @map("created_at")
+  updatedAt   DateTime              @updatedAt @map("updated_at")
+  adminUser   AdminUser             @relation(fields: [createdBy], references: [id])
+  hotel       Hotel                 @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  roomType    RoomType?             @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId], map: "idx_availability_hotel")
+  @@index([roomTypeId], map: "idx_availability_room_type")
+  @@index([startDate], map: "idx_start_date")
+  @@index([endDate], map: "idx_end_date")
+  @@index([blockType], map: "idx_block_type")
+  @@index([createdBy], map: "availability_blocks_created_by_fkey")
+  @@map("availability_blocks")
+}
+
+model PlatformSync {
+  id               BigInt           @id @default(autoincrement())
+  platform         ExternalPlatform
+  hotelId          BigInt           @map("hotel_id")
+  lastSyncAt       DateTime         @map("last_sync_at")
+  syncStatus       SyncStatus       @map("sync_status")
+  recordsProcessed Int              @default(0) @map("records_processed")
+  recordsUpdated   Int              @default(0) @map("records_updated")
+  recordsCreated   Int              @default(0) @map("records_created")
+  errors           String?          @db.Text
+  syncDuration     Int?             @map("sync_duration")
+  nextSyncAt       DateTime?        @map("next_sync_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  hotel            Hotel            @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([platform], map: "idx_sync_platform")
+  @@index([hotelId], map: "idx_sync_hotel")
+  @@index([lastSyncAt], map: "idx_last_sync")
+  @@index([syncStatus], map: "idx_sync_status")
+  @@map("platform_syncs")
+}
+
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AmenityCategory {
+  HOTEL
+  ROOM
+  ACTIVITY
+  GENERAL
 }
 
 enum EntityType {
@@ -87,165 +802,6 @@ enum EntityType {
   PACKAGE
 }
 
-// =========================================================
-// SISTEMA DE IMÁGENES
-// =========================================================
-
-model EntityImage {
-  id                  BigInt     @id @default(autoincrement())
-  entityType          EntityType @map("entity_type")
-  entityId            BigInt     @map("entity_id")
-  imageUrl            String     @map("image_url") @db.VarChar(500)
-  cloudinaryPublicId  String?    @map("cloudinary_public_id") @db.VarChar(255)
-  altText             String?    @map("alt_text") @db.VarChar(255)
-  isPrimary           Boolean    @default(false) @map("is_primary") @db.TinyInt
-  displayOrder        Int        @default(0) @map("display_order")
-  createdAt           DateTime   @default(now()) @map("created_at")
-
-  @@index([entityType, entityId])
-  @@map("entity_images")
-}
-
-// =========================================================
-// HOTELES Y HABITACIONES
-// =========================================================
-
-model Hotel {
-  id             BigInt    @id @default(autoincrement())
-  name           String    @db.VarChar(120)
-  code           String?   @unique @db.VarChar(20)
-  brand          String?   @db.VarChar(80)
-  description    String?   @db.Text
-  logoUrl        String?   @map("logo_url") @db.VarChar(500)
-  address        String?   @db.Text
-  city           String?   @db.VarChar(80)
-  country        String?   @default("Guatemala") @db.VarChar(60)
-  postalCode     String?   @map("postal_code") @db.VarChar(20)
-  latitude       Decimal?  @db.Decimal(10, 8)
-  longitude      Decimal?  @db.Decimal(11, 8)
-  wazeLink       String?   @map("waze_link") @db.Text
-  googleMapsLink String?   @map("google_maps_link") @db.Text
-  phone          String?   @db.VarChar(40)
-  email          String?   @db.VarChar(160)
-  website        String?   @db.VarChar(255)
-  checkInTime    DateTime? @default(dbgenerated("'15:00:00'")) @map("check_in_time") @db.Time
-  checkOutTime   DateTime? @default(dbgenerated("'11:00:00'")) @map("check_out_time") @db.Time
-  rating         Decimal?  @default(0) @db.Decimal(2, 1)
-  totalRooms     Int       @default(0) @map("total_rooms")
-  timezone       String    @default("America/Guatemala") @db.VarChar(40)
-  isActive       Boolean   @default(true) @map("is_active") @db.TinyInt
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  roomTypes           RoomType[]
-  rooms               Room[]
-  shuttleRoutes       ShuttleRoute[]
-  packageHotels       PackageHotel[]
-  accommodationStays  AccommodationStay[]
-
-  @@map("hotels")
-}
-
-model RoomType {
-  id              BigInt    @id @default(autoincrement())
-  hotelId         BigInt    @map("hotel_id")
-  name            String    @db.VarChar(80)
-  description     String?   @db.Text
-  occupancy       Int
-  maxAdults       Int       @map("max_adults")
-  maxChildren     Int       @default(0) @map("max_children")
-  bedConfiguration String?  @map("bed_configuration") @db.VarChar(200)
-  roomSizeSqm     Int?      @map("room_size_sqm")
-  baseRate        Decimal   @map("base_rate") @db.Decimal(12, 2)
-  currency        String    @default("USD") @db.Char(3)
-  isActive        Boolean   @default(true) @map("is_active") @db.TinyInt
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  hotel               Hotel               @relation(fields: [hotelId], references: [id], onDelete: Cascade)
-  rooms               Room[]
-  packageHotels       PackageHotel[]
-  accommodationStays  AccommodationStay[]
-
-  @@unique([hotelId, name])
-  @@map("room_types")
-}
-
-model Room {
-  id           BigInt    @id @default(autoincrement())
-  hotelId      BigInt    @map("hotel_id")
-  roomTypeId   BigInt    @map("room_type_id")
-  code         String    @db.VarChar(40)
-  floorNumber  Int?      @map("floor_number")
-  isActive     Boolean   @default(true) @map("is_active") @db.TinyInt
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  hotel               Hotel               @relation(fields: [hotelId], references: [id], onDelete: Cascade)
-  roomType            RoomType            @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
-  roomInventory       RoomInventory[]
-  accommodationStays  AccommodationStay[]
-
-  @@unique([hotelId, code])
-  @@map("rooms")
-}
-
-model RoomInventory {
-  id                  BigInt    @id @default(autoincrement())
-  roomId              BigInt    @map("room_id")
-  stayDate            DateTime  @map("stay_date") @db.Date
-  isBlocked           Boolean   @default(false) @map("is_blocked") @db.TinyInt
-  priceOverride       Decimal?  @map("price_override") @db.Decimal(12, 2)
-  reservationItemId   BigInt?   @map("reservation_item_id")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  room            Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  reservationItem ReservationItem? @relation(fields: [reservationItemId], references: [id], onDelete: SetNull)
-
-  @@unique([roomId, stayDate])
-  @@map("room_inventory")
-}
-
-// =========================================================
-// ACTIVIDADES
-// =========================================================
-
-model Activity {
-  id                  BigInt            @id @default(autoincrement())
-  name                String            @db.VarChar(140)
-  description         String?           @db.Text
-  shortDescription    String?           @map("short_description") @db.VarChar(500)
-  durationHours       Decimal?          @map("duration_hours") @db.Decimal(4, 2)
-  minParticipants     Int               @default(1) @map("min_participants")
-  maxParticipants     Int?              @map("max_participants")
-  basePrice           Decimal           @map("base_price") @db.Decimal(12, 2)
-  currency            String            @default("USD") @db.Char(3)
-  ageRestriction      String?           @map("age_restriction") @db.VarChar(100)
-  difficultyLevel     DifficultyLevel?  @map("difficulty_level")
-  location            String?           @db.VarChar(255)
-  meetingPoint        String?           @map("meeting_point") @db.Text
-  whatIncludes        String?           @map("what_includes") @db.Text
-  whatToBring         String?           @map("what_to_bring") @db.Text
-  cancellationPolicy  String?           @map("cancellation_policy") @db.Text
-  isActive            Boolean           @default(true) @map("is_active") @db.TinyInt
-  isFeatured          Boolean           @default(false) @map("is_featured") @db.TinyInt
-  featuredOrder       Int?              @map("featured_order")
-  createdAt           DateTime          @default(now()) @map("created_at")
-  updatedAt           DateTime          @updatedAt @map("updated_at")
-
-  // Relations
-  activitySchedules   ActivitySchedule[]
-  packageActivities   PackageActivity[]
-  activityBookings    ActivityBooking[]
-
-  @@map("activities")
-}
-
 enum DifficultyLevel {
   easy
   moderate
@@ -253,244 +809,10 @@ enum DifficultyLevel {
   extreme
 }
 
-model ActivitySchedule {
-  id            BigInt    @id @default(autoincrement())
-  activityId    BigInt    @map("activity_id")
-  date          DateTime  @db.Date
-  startTime     DateTime  @map("start_time") @db.Time
-  endTime       DateTime  @map("end_time") @db.Time
-  availableSpots Int      @map("available_spots")
-  priceOverride Decimal?  @map("price_override") @db.Decimal(12, 2)
-  isActive      Boolean   @default(true) @map("is_active") @db.TinyInt
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  activity         Activity          @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  activityBookings ActivityBooking[]
-
-  @@map("activity_schedules")
-}
-
-// =========================================================
-// PAQUETES
-// =========================================================
-
-model Package {
-  id                  BigInt    @id @default(autoincrement())
-  name                String    @unique @db.VarChar(140)
-  description         String?   @db.Text
-  shortDescription    String?   @map("short_description") @db.VarChar(500)
-  durationDays        Int       @map("duration_days")
-  durationNights      Int       @map("duration_nights")
-  minParticipants     Int       @default(1) @map("min_participants")
-  maxParticipants     Int?      @map("max_participants")
-  basePrice           Decimal   @map("base_price") @db.Decimal(12, 2)
-  pricePerCouple      Decimal?  @map("price_per_couple") @db.Decimal(12, 2)
-  currency            String    @default("USD") @db.Char(3)
-  capacity            Int?
-  whatIncludes        String?   @map("what_includes") @db.Text
-  whatExcludes        String?   @map("what_excludes") @db.Text
-  itinerary           String?   @db.Text
-  cancellationPolicy  String?   @map("cancellation_policy") @db.Text
-  active              Boolean   @default(true) @db.TinyInt
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  packageSessions   PackageSession[]
-  packageHotels     PackageHotel[]
-  packageActivities PackageActivity[]
-  packageBookings   PackageBooking[]
-
-  @@map("packages")
-}
-
-model PackageSession {
-  id            BigInt    @id @default(autoincrement())
-  packageId     BigInt    @map("package_id")
-  startTs       DateTime  @map("start_ts")
-  endTs         DateTime  @map("end_ts")
-  capacity      Int?
-  priceOverride Decimal?  @map("price_override") @db.Decimal(12, 2)
-  isActive      Boolean   @default(true) @map("is_active") @db.TinyInt
-  createdAt     DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  package         Package          @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  packageBookings PackageBooking[]
-
-  @@unique([packageId, startTs])
-  @@map("package_sessions")
-}
-
-model PackageHotel {
-  id          BigInt   @id @default(autoincrement())
-  packageId   BigInt   @map("package_id")
-  hotelId     BigInt   @map("hotel_id")
-  roomTypeId  BigInt   @map("room_type_id")
-  nights      Int
-  checkInDay  Int      @map("check_in_day")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  // Relations
-  package  Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  hotel    Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
-  roomType RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
-
-  @@map("package_hotels")
-}
-
-model PackageActivity {
-  id                  BigInt   @id @default(autoincrement())
-  packageId           BigInt   @map("package_id")
-  activityId          BigInt   @map("activity_id")
-  dayNumber           Int      @map("day_number")
-  participantsIncluded Int?    @map("participants_included")
-  createdAt           DateTime @default(now()) @map("created_at")
-
-  // Relations
-  package  Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  @@map("package_activities")
-}
-
-// =========================================================
-// SHUTTLE SERVICE
-// =========================================================
-
-model Airport {
-  id        BigInt    @id @default(autoincrement())
-  iata      String?   @unique @db.Char(3)
-  name      String    @db.VarChar(120)
-  city      String?   @db.VarChar(80)
-  country   String?   @db.VarChar(60)
-  isActive  Boolean   @default(true) @map("is_active") @db.TinyInt
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  shuttleRoutes ShuttleRoute[]
-
-  @@map("airports")
-}
-
-model ShuttleRoute {
-  id                      BigInt              @id @default(autoincrement())
-  name                    String              @db.VarChar(140)
-  description             String?             @db.Text
-  fromAirportId           BigInt              @map("from_airport_id")
-  toHotelId               BigInt              @map("to_hotel_id")
-  direction               ShuttleDirection
-  distanceKm              Decimal?            @map("distance_km") @db.Decimal(6, 2)
-  estimatedDurationMinutes Int?               @map("estimated_duration_minutes")
-  basePrice               Decimal             @map("base_price") @db.Decimal(12, 2)
-  currency                String              @default("USD") @db.Char(3)
-  isShared                Boolean             @default(true) @map("is_shared") @db.TinyInt
-  maxPassengers           Int                 @default(8) @map("max_passengers")
-  vehicleType             String?             @map("vehicle_type") @db.VarChar(100)
-  isActive                Boolean             @default(true) @map("is_active") @db.TinyInt
-  createdAt               DateTime            @default(now()) @map("created_at")
-  updatedAt               DateTime            @updatedAt @map("updated_at")
-
-  // Relations
-  fromAirport         Airport               @relation(fields: [fromAirportId], references: [id], onDelete: Restrict)
-  toHotel             Hotel                 @relation(fields: [toHotelId], references: [id], onDelete: Restrict)
-  shuttleSchedules    ShuttleSchedule[]
-  shuttleAvailability ShuttleAvailability[]
-  shuttleTransfers    ShuttleTransfer[]
-
-  @@unique([fromAirportId, toHotelId, direction, isShared])
-  @@map("shuttle_routes")
-}
-
 enum ShuttleDirection {
   ARRIVAL
   DEPARTURE
   ROUNDTRIP
-}
-
-model ShuttleSchedule {
-  id            BigInt   @id @default(autoincrement())
-  routeId       BigInt   @map("route_id")
-  departureTime DateTime @map("departure_time") @db.Time
-  daysOfWeek    String   @map("days_of_week") @db.VarChar(20)
-  isActive      Boolean  @default(true) @map("is_active") @db.TinyInt
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  // Relations
-  route ShuttleRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
-
-  @@map("shuttle_schedules")
-}
-
-model ShuttleAvailability {
-  id            BigInt    @id @default(autoincrement())
-  routeId       BigInt    @map("route_id")
-  date          DateTime  @db.Date
-  departureTime DateTime  @map("departure_time") @db.Time
-  availableSeats Int      @map("available_seats")
-  priceOverride Decimal?  @map("price_override") @db.Decimal(12, 2)
-  isActive      Boolean   @default(true) @map("is_active") @db.TinyInt
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  route            ShuttleRoute      @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  shuttleTransfers ShuttleTransfer[]
-
-  @@map("shuttle_availability")
-}
-
-// =========================================================
-// HUÉSPEDES Y RESERVACIONES
-// =========================================================
-
-model Guest {
-  id             BigInt    @id @default(autoincrement())
-  firstName      String    @map("first_name") @db.VarChar(80)
-  lastName       String    @map("last_name") @db.VarChar(80)
-  email          String?   @db.VarChar(160)
-  phone          String?   @db.VarChar(40)
-  country        String?   @db.VarChar(60)
-  dateOfBirth    DateTime? @map("date_of_birth") @db.Date
-  passportNumber String?   @map("passport_number") @db.VarChar(50)
-  nationality    String?   @db.VarChar(60)
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  reservations      Reservation[]
-  notificationLogs  NotificationLog[]
-  notificationQueue NotificationQueue[]
-
-  @@map("guests")
-}
-
-model Reservation {
-  id                  BigInt            @id @default(autoincrement())
-  confirmationNumber  String            @unique @map("confirmation_number") @db.VarChar(20)
-  guestId             BigInt            @map("guest_id")
-  status              ReservationStatus @default(PENDING)
-  checkin             DateTime?         @db.Date
-  checkout            DateTime?         @db.Date
-  currency            String            @default("USD") @db.Char(3)
-  totalAmount         Decimal           @default(0.00) @map("total_amount") @db.Decimal(12, 2)
-  paymentStatus       PaymentStatus     @default(PENDING) @map("payment_status")
-  specialRequests     String?           @map("special_requests") @db.Text
-  notes               String?           @db.Text
-  source              String            @default("WEBSITE") @db.VarChar(50)
-  createdAt           DateTime          @default(now()) @map("created_at")
-  updatedAt           DateTime          @updatedAt @map("updated_at")
-
-  // Relations
-  guest             Guest             @relation(fields: [guestId], references: [id], onDelete: Restrict)
-  reservationItems  ReservationItem[]
-  payments          Payment[]
-  notificationLogs  NotificationLog[]
-  notificationQueue NotificationQueue[]
-
-  @@map("reservations")
 }
 
 enum ReservationStatus {
@@ -508,153 +830,11 @@ enum PaymentStatus {
   REFUNDED
 }
 
-// =========================================================
-// RESERVATION ITEMS (POLIMÓRFICO)
-// =========================================================
-
-model ReservationItem {
-  id            BigInt          @id @default(autoincrement())
-  reservationId BigInt          @map("reservation_id")
-  itemType      ReservationItemType @map("item_type")
-  title         String          @db.VarChar(140)
-  quantity      Int             @default(1)
-  unitPrice     Decimal         @map("unit_price") @db.Decimal(12, 2)
-  amount        Decimal         @db.Decimal(12, 2)
-  meta          Json?
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
-
-  // Relations
-  reservation         Reservation         @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-  roomInventory       RoomInventory[]
-  accommodationStay   AccommodationStay?
-  packageBooking      PackageBooking?
-  shuttleTransfer     ShuttleTransfer?
-  activityBooking     ActivityBooking?
-
-  @@map("reservation_items")
-}
-
 enum ReservationItemType {
   ACCOMMODATION
   PACKAGE
   SHUTTLE
   ACTIVITY
-}
-
-// =========================================================
-// DETALLES ESPECÍFICOS POR TIPO
-// =========================================================
-
-model AccommodationStay {
-  id                BigInt    @id @default(autoincrement())
-  reservationItemId BigInt    @unique @map("reservation_item_id")
-  hotelId           BigInt    @map("hotel_id")
-  roomTypeId        BigInt    @map("room_type_id")
-  assignedRoomId    BigInt?   @map("assigned_room_id")
-  adults            Int       @default(1)
-  children          Int       @default(0)
-  checkInDate       DateTime  @map("check_in_date") @db.Date
-  checkOutDate      DateTime  @map("check_out_date") @db.Date
-  nights            Int
-  guestName         String?   @map("guest_name") @db.VarChar(160)
-  createdAt         DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  reservationItem ReservationItem @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
-  hotel           Hotel           @relation(fields: [hotelId], references: [id], onDelete: Restrict)
-  roomType        RoomType        @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
-  assignedRoom    Room?           @relation(fields: [assignedRoomId], references: [id], onDelete: SetNull)
-
-  @@map("accommodation_stays")
-}
-
-model PackageBooking {
-  id                BigInt    @id @default(autoincrement())
-  reservationItemId BigInt    @unique @map("reservation_item_id")
-  packageId         BigInt    @map("package_id")
-  sessionId         BigInt?   @map("session_id")
-  startTs           DateTime? @map("start_ts")
-  endTs             DateTime? @map("end_ts")
-  pax               Int       @default(1)
-  participantNames  String?   @map("participant_names") @db.Text
-  createdAt         DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  reservationItem ReservationItem @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
-  package         Package         @relation(fields: [packageId], references: [id], onDelete: Restrict)
-  session         PackageSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-
-  @@map("package_bookings")
-}
-
-model ShuttleTransfer {
-  id                BigInt    @id @default(autoincrement())
-  reservationItemId BigInt    @unique @map("reservation_item_id")
-  shuttleRouteId    BigInt    @map("shuttle_route_id")
-  availabilityId    BigInt?   @map("availability_id")
-  transferTs        DateTime  @map("transfer_ts")
-  passengers        Int       @default(1)
-  passengerNames    String?   @map("passenger_names") @db.Text
-  flightNumber      String?   @map("flight_number") @db.VarChar(20)
-  pickupLocation    String?   @map("pickup_location") @db.VarChar(255)
-  dropoffLocation   String?   @map("dropoff_location") @db.VarChar(255)
-  notes             String?   @db.Text
-  createdAt         DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  reservationItem ReservationItem      @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
-  shuttleRoute    ShuttleRoute         @relation(fields: [shuttleRouteId], references: [id], onDelete: Restrict)
-  availability    ShuttleAvailability? @relation(fields: [availabilityId], references: [id], onDelete: SetNull)
-
-  @@map("shuttle_transfers")
-}
-
-model ActivityBooking {
-  id                BigInt    @id @default(autoincrement())
-  reservationItemId BigInt    @unique @map("reservation_item_id")
-  activityId        BigInt    @map("activity_id")
-  scheduleId        BigInt?   @map("schedule_id")
-  activityDate      DateTime  @map("activity_date") @db.Date
-  startTime         DateTime  @map("start_time") @db.Time
-  participants      Int
-  participantNames  String?   @map("participant_names") @db.Text
-  emergencyContact  String?   @map("emergency_contact") @db.VarChar(200)
-  emergencyPhone    String?   @map("emergency_phone") @db.VarChar(40)
-  createdAt         DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  reservationItem ReservationItem   @relation(fields: [reservationItemId], references: [id], onDelete: Cascade)
-  activity        Activity          @relation(fields: [activityId], references: [id], onDelete: Restrict)
-  schedule        ActivitySchedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
-
-  @@map("activity_bookings")
-}
-
-// =========================================================
-// PAGOS
-// =========================================================
-
-model Payment {
-  id              BigInt        @id @default(autoincrement())
-  reservationId   BigInt        @map("reservation_id")
-  paymentIntentId String?       @map("payment_intent_id") @db.VarChar(120)
-  provider        String        @db.VarChar(30)
-  status          PaymentStatus
-  paymentMethod   PaymentMethod @map("payment_method")
-  amount          Decimal       @db.Decimal(12, 2)
-  currency        String        @default("USD") @db.Char(3)
-  txnRef          String?       @map("txn_ref") @db.VarChar(120)
-  gatewayResponse Json?         @map("gateway_response")
-  processedAt     DateTime?     @map("processed_at")
-  notes           String?       @db.Text
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
-
-  // Relations
-  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-
-  @@map("payments")
 }
 
 enum PaymentMethod {
@@ -665,27 +845,6 @@ enum PaymentMethod {
   CASH
 }
 
-// =========================================================
-// CONFIGURACIÓN Y LOGS
-// =========================================================
-
-model SystemSetting {
-  id          BigInt      @id @default(autoincrement())
-  settingKey  String      @unique @map("setting_key") @db.VarChar(100)
-  settingValue String     @map("setting_value") @db.Text
-  dataType    DataType    @default(STRING) @map("data_type")
-  description String?     @db.Text
-  isPublic    Boolean     @default(false) @map("is_public") @db.TinyInt
-  updatedBy   BigInt?     @map("updated_by")
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-
-  // Relations
-  updatedByAdmin AdminUser? @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
-
-  @@map("system_settings")
-}
-
 enum DataType {
   STRING
   INTEGER
@@ -694,133 +853,9 @@ enum DataType {
   JSON
 }
 
-model ActivityLog {
-  id          BigInt    @id @default(autoincrement())
-  adminUserId BigInt?   @map("admin_user_id")
-  action      String    @db.VarChar(100)
-  tableName   String?   @map("table_name") @db.VarChar(50)
-  recordId    BigInt?   @map("record_id")
-  oldValues   Json?     @map("old_values")
-  newValues   Json?     @map("new_values")
-  ipAddress   String?   @map("ip_address") @db.VarChar(45)
-  userAgent   String?   @map("user_agent") @db.Text
-  createdAt   DateTime  @default(now()) @map("created_at")
-
-  // Relations
-  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
-
-  @@map("activity_logs")
-}
-
-// =========================================================
-// SISTEMA DE NOTIFICACIONES
-// =========================================================
-
-model NotificationSetting {
-  id            BigInt             @id @default(autoincrement())
-  type          NotificationType
-  eventType     String             @map("event_type") @db.VarChar(50)
-  isEnabled     Boolean            @default(true) @map("is_enabled")
-  recipientType NotificationRecipient @map("recipient_type")
-  templateName  String             @map("template_name") @db.VarChar(50)
-  delayMinutes  Int                @default(0) @map("delay_minutes")
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt @map("updated_at")
-
-  @@unique([type, eventType, recipientType], name: "unique_notification")
-  @@map("notification_settings")
-}
-
-model NotificationLog {
-  id             BigInt              @id @default(autoincrement())
-  type           NotificationType
-  eventType      String              @map("event_type") @db.VarChar(50)
-  recipientEmail String?             @map("recipient_email") @db.VarChar(255)
-  recipientPhone String?             @map("recipient_phone") @db.VarChar(20)
-  templateName   String              @map("template_name") @db.VarChar(50)
-  status         NotificationStatus  @default(PENDING)
-  providerId     String?             @map("provider_id") @db.VarChar(100)
-  errorMessage   String?             @map("error_message") @db.Text
-  sentAt         DateTime?           @map("sent_at")
-  openedAt       DateTime?           @map("opened_at")
-  clickedAt      DateTime?           @map("clicked_at")
-  reservationId  BigInt?             @map("reservation_id")
-  guestId        BigInt?             @map("guest_id")
-  adminUserId    BigInt?             @map("admin_user_id")
-  metadata       Json?
-  createdAt      DateTime            @default(now()) @map("created_at")
-
-  // Relations
-  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-  guest       Guest?       @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  adminUser   AdminUser?   @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
-
-  @@index([reservationId], name: "idx_reservation")
-  @@index([status], name: "idx_status")
-  @@index([eventType], name: "idx_event_type")
-  @@index([recipientEmail], name: "idx_recipient_email")
-  @@index([sentAt], name: "idx_sent_at")
-  @@map("notification_logs")
-}
-
-model NotificationQueue {
-  id            BigInt              @id @default(autoincrement())
-  type          NotificationType
-  eventType     String              @map("event_type") @db.VarChar(50)
-  recipientEmail String?            @map("recipient_email") @db.VarChar(255)
-  recipientPhone String?            @map("recipient_phone") @db.VarChar(20)
-  templateName  String              @map("template_name") @db.VarChar(50)
-  templateData  Json                @map("template_data")
-  scheduledFor  DateTime            @map("scheduled_for")
-  attempts      Int                 @default(0)
-  maxAttempts   Int                 @default(3) @map("max_attempts")
-  status        NotificationQueueStatus @default(PENDING)
-  errorMessage  String?             @map("error_message") @db.Text
-  reservationId BigInt?             @map("reservation_id")
-  guestId       BigInt?             @map("guest_id")
-  adminUserId   BigInt?             @map("admin_user_id")
-  createdAt     DateTime            @default(now()) @map("created_at")
-
-  // Relations
-  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-  guest       Guest?       @relation(fields: [guestId], references: [id], onDelete: Cascade)
-  adminUser   AdminUser?   @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
-
-  @@index([scheduledFor, status], name: "idx_scheduled")
-  @@index([status], name: "idx_status")
-  @@index([reservationId], name: "idx_reservation")
-  @@map("notification_queue")
-}
-
 enum NotificationType {
   EMAIL
   SMS
-}
-
-// =========================================================
-// IMÁGENES DEL SITIO WEB
-// =========================================================
-
-model WebsiteImage {
-  id                BigInt   @id @default(autoincrement())
-  imageKey          String   @unique @map("image_key") @db.VarChar(100)
-  title             String   @db.VarChar(255)
-  description       String?  @db.Text
-  imageUrl          String   @map("image_url") @db.VarChar(500)
-  cloudinaryPublicId String  @map("cloudinary_public_id") @db.VarChar(255)
-  altText           String?  @map("alt_text") @db.VarChar(255)
-  isActive          Boolean  @default(true) @map("is_active")
-  sortOrder         Int      @default(0) @map("sort_order")
-  pageSection       String   @default("hero") @map("page_section") @db.VarChar(50)
-  pageType          String   @default("home") @map("page_type") @db.VarChar(50)
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-
-  @@index([pageType], name: "idx_page_type")
-  @@index([pageSection], name: "idx_page_section")
-  @@index([isActive], name: "idx_is_active")
-  @@index([sortOrder], name: "idx_sort_order")
-  @@map("website_images")
 }
 
 enum NotificationRecipient {
@@ -840,4 +875,50 @@ enum NotificationQueueStatus {
   PROCESSING
   SENT
   FAILED
+}
+
+enum ExternalPlatform {
+  BOOKING_COM
+  EXPEDIA
+  AIRBNB
+  HOTELS_COM
+  AGODA
+  TRIVAGO
+  DIRECT_BOOKING
+  OTHER
+}
+
+enum ExternalBookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  NO_SHOW
+  COMPLETED
+  MODIFIED
+}
+
+enum ExternalItemType {
+  ACCOMMODATION
+  ACTIVITY
+  PACKAGE
+  SHUTTLE
+  MEAL
+  OTHER
+}
+
+enum AvailabilityBlockType {
+  MAINTENANCE
+  RENOVATION
+  PRIVATE_EVENT
+  OVERBOOKING
+  SYSTEM_BLOCK
+  MANUAL_BLOCK
+}
+
+enum SyncStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
 }

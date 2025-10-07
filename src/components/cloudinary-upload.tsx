@@ -11,13 +11,15 @@ interface CloudinaryUploadProps {
   onUploadError?: (error: string) => void
   className?: string
   disabled?: boolean
+  folder?: string
 }
 
 export default function CloudinaryUpload({
   onUploadComplete,
   onUploadError,
   className = '',
-  disabled = false
+  disabled = false,
+  folder = 'website-images'
 }: CloudinaryUploadProps) {
   const { toast } = useToast()
   const [uploading, setUploading] = useState(false)
@@ -87,7 +89,7 @@ export default function CloudinaryUpload({
       // Crear FormData para nuestro API endpoint
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('folder', 'website-images')
+      formData.append('folder', folder)
 
       // Subir usando nuestro API endpoint simple (con tu preset unsigned)
       const response = await fetch('/api/upload/cloudinary-simple', {

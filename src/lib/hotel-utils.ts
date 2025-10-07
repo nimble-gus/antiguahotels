@@ -82,3 +82,6 @@ export async function generateHotelCode(name: string, city: string): Promise<str
  * "Hotel Real InterContinental" → "AHRI001"
  * "Posada del Angel" → "AHPDA001"
  */
+
+
+
