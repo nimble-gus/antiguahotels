@@ -123,10 +123,13 @@ export function HotelForm({ hotel, onClose, onSave }: HotelFormProps) {
       const response = await fetch('/api/amenities?category=HOTEL')
       if (response.ok) {
         const data = await response.json()
-        setAmenities(data)
+        // Asegurar que amenities sea siempre un array
+        setAmenities(Array.isArray(data) ? data : (data.amenities || []))
       }
     } catch (error) {
       console.error('Error fetching amenities:', error)
+      // En caso de error, mantener amenities como array vacío
+      setAmenities([])
     }
   }
 
@@ -616,7 +619,7 @@ export function HotelForm({ hotel, onClose, onSave }: HotelFormProps) {
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Amenidades del Hotel</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {amenities.map((amenity) => (
+              {Array.isArray(amenities) && amenities.map((amenity) => (
                 <div
                   key={amenity.id}
                   onClick={() => handleAmenityToggle(amenity.id)}

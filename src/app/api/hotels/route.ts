@@ -62,8 +62,36 @@ export async function GET(request: NextRequest) {
       prisma.hotel.count({ where })
     ])
 
+    // Obtener imágenes para cada hotel
+    const hotelsWithImages = await Promise.all(
+      hotels.map(async (hotel) => {
+        const images = await prisma.entityImage.findMany({
+          where: {
+            entityType: 'HOTEL',
+            entityId: hotel.id
+          },
+          orderBy: [
+            { isPrimary: 'desc' },
+            { displayOrder: 'asc' }
+          ]
+        })
+
+        return {
+          ...hotel,
+          images: images.map(img => ({
+            id: img.id.toString(),
+            imageUrl: img.imageUrl,
+            cloudinaryPublicId: img.cloudinaryPublicId,
+            altText: img.altText,
+            isPrimary: img.isPrimary,
+            displayOrder: img.displayOrder
+          }))
+        }
+      })
+    )
+
     // Serializar BigInt
-    const serializedHotels = hotels.map(hotel => ({
+    const serializedHotels = hotelsWithImages.map(hotel => ({
       ...hotel,
       id: hotel.id.toString(),
       latitude: hotel.latitude?.toString(),

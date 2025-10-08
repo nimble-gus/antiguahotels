@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
@@ -13,9 +15,11 @@ import {
   Star
 } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useFooterSettings } from '@/hooks/useFooterSettings'
 
 export default function PublicFooter() {
   const { t } = useLanguage()
+  const { settings, loading } = useFooterSettings()
   const currentYear = new Date().getFullYear()
 
   const quickLinks = [
@@ -33,9 +37,9 @@ export default function PublicFooter() {
   ]
 
   const socialLinks = [
-    { name: 'Facebook', href: '#', icon: Facebook },
-    { name: 'Instagram', href: '#', icon: Instagram },
-    { name: 'Twitter', href: '#', icon: Twitter },
+    { name: 'Facebook', href: settings.facebook_url || '#', icon: Facebook },
+    { name: 'Instagram', href: settings.instagram_url || '#', icon: Instagram },
+    { name: 'Twitter', href: settings.twitter_url || '#', icon: Twitter },
   ]
 
   const features = [
@@ -44,6 +48,20 @@ export default function PublicFooter() {
     { icon: Shield, text: t('footer.features.secure') },
     { icon: Star, text: t('footer.features.unique') },
   ]
+
+  // Mostrar loading si las configuraciones aún se están cargando
+  if (loading) {
+    return (
+      <footer className="bg-white text-gray-900">
+        <div className="container mx-auto px-4 py-12">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-antigua-purple mr-3"></div>
+            <span className="text-gray-600">Cargando...</span>
+          </div>
+        </div>
+      </footer>
+    )
+  }
 
   return (
     <footer className="bg-white text-gray-900">
@@ -64,7 +82,7 @@ export default function PublicFooter() {
             </Link>
             
             <p className="text-gray-600 mb-6 leading-relaxed">
-              {t('footer.description')}
+              {settings.description || t('footer.description')}
             </p>
 
             {/* Features */}
@@ -119,24 +137,24 @@ export default function PublicFooter() {
               <div className="flex items-start space-x-3">
                 <Phone className="h-5 w-5 text-antigua-purple mt-1" />
                 <div>
-                  <p className="text-gray-800">+502 1234-5678</p>
-                  <p className="text-gray-600 text-sm">{t('footer.phone_hours')}</p>
+                  <p className="text-gray-800">{settings.phone || '+502 1234-5678'}</p>
+                  <p className="text-gray-600 text-sm">{settings.phone_hours || t('footer.phone_hours')}</p>
                 </div>
               </div>
               
               <div className="flex items-start space-x-3">
                 <Mail className="h-5 w-5 text-antigua-purple mt-1" />
                 <div>
-                  <p className="text-gray-800">info@antiguahotelstours.com</p>
-                  <p className="text-gray-600 text-sm">{t('footer.email_response')}</p>
+                  <p className="text-gray-800">{settings.email || 'info@antiguahotelstours.com'}</p>
+                  <p className="text-gray-600 text-sm">{settings.email_response || t('footer.email_response')}</p>
                 </div>
               </div>
               
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-antigua-purple mt-1" />
                 <div>
-                  <p className="text-gray-800">Antigua Guatemala</p>
-                  <p className="text-gray-600 text-sm">{t('footer.location_detail')}</p>
+                  <p className="text-gray-800">{settings.address || 'Antigua Guatemala'}</p>
+                  <p className="text-gray-600 text-sm">{settings.address_detail || t('footer.location_detail')}</p>
                 </div>
               </div>
             </div>
@@ -166,7 +184,7 @@ export default function PublicFooter() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-600 text-sm mb-4 md:mb-0">
-              © {currentYear} Antigua Hotels Tours. {t('footer.all_rights')}
+              © {currentYear} {settings.company_name || 'Antigua Hotels Tours'}. {settings.copyright || t('footer.all_rights')}
             </div>
             <div className="flex items-center space-x-6 text-sm">
               <Link 
@@ -182,7 +200,7 @@ export default function PublicFooter() {
                 {t('footer.terms_use')}
               </Link>
               <span className="text-gray-600">
-                {t('footer.made_with_love')}
+                {settings.made_with_love || t('footer.made_with_love')}
               </span>
             </div>
           </div>

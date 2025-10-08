@@ -53,6 +53,14 @@ interface Hotel {
     roomTypes: number
   }
   amenities?: string[]
+  images?: Array<{
+    id: string
+    imageUrl: string
+    cloudinaryPublicId?: string
+    altText?: string
+    isPrimary: boolean
+    displayOrder: number
+  }>
 }
 
 // Interface para las amenidades con iconos
@@ -284,8 +292,15 @@ export default function HotelsPage() {
                       {/* Hotel Image */}
                       <div className="relative h-64 overflow-hidden">
                         <Image
-                          src={hotel.logoUrl || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&h=300&fit=crop'}
-                          alt={hotel.name}
+                          src={
+                            hotel.images && hotel.images.length > 0 
+                              ? hotel.images.find(img => img.isPrimary)?.imageUrl || hotel.images[0].imageUrl
+                              : hotel.logoUrl || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&h=300&fit=crop'
+                          }
+                          alt={hotel.images && hotel.images.length > 0 
+                            ? hotel.images.find(img => img.isPrimary)?.altText || hotel.name
+                            : hotel.name
+                          }
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />

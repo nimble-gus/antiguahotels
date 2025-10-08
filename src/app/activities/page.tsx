@@ -160,24 +160,24 @@ export default function ActivitiesPage() {
 
   const getDifficultyLabel = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'Fácil'
-      case 'moderate': return 'Moderado'
-      case 'challenging': return 'Difícil'
-      case 'extreme': return 'Extremo'
-      default: return 'Moderado'
+      case 'easy': return t('activities.difficulty.easy', 'Fácil')
+      case 'moderate': return t('activities.difficulty.moderate', 'Moderado')
+      case 'challenging': return t('activities.difficulty.challenging', 'Difícil')
+      case 'extreme': return t('activities.difficulty.extreme', 'Extremo')
+      default: return t('activities.difficulty.moderate', 'Moderado')
     }
   }
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} min`
+    if (minutes < 60) return `${minutes} ${t('activities.minutes', 'min')}`
     const hours = Math.floor(minutes / 60)
     const remainingMinutes = minutes % 60
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}min` : `${hours}h`
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}${t('activities.minutes', 'min')}` : `${hours}h`
   }
 
   const formatParticipants = (min: number, max?: number) => {
-    if (max) return `${min}-${max} personas`
-    return `${min}+ personas`
+    if (max) return `${min}-${max} ${t('activities.people', 'personas')}`
+    return `${min}+ ${t('activities.people', 'personas')}`
   }
 
   return (
@@ -261,7 +261,7 @@ export default function ActivitiesPage() {
 
                 <Button onClick={handleSearch}>
                   <Search className="h-4 w-4 mr-2" />
-                  Buscar
+                  {t('search.search', 'Buscar')}
                 </Button>
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function ActivitiesPage() {
                       {activity.isFeatured && (
                         <div className="absolute top-2 left-2">
                           <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                            Destacada
+                            {t('activities.featured', 'Destacada')}
                           </span>
                         </div>
                       )}
@@ -384,7 +384,7 @@ export default function ActivitiesPage() {
                         </div>
                         <Link href={`/activities/${activity.id}`}>
                           <Button size="sm">
-                            Ver detalles
+                            {t('activities.viewDetails', 'Ver detalles')}
                             <ArrowRight className="h-4 w-4 ml-1" />
                           </Button>
                         </Link>

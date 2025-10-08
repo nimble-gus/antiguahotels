@@ -922,3 +922,50 @@ enum SyncStatus {
   FAILED
   CANCELLED
 }
+
+model PageContent {
+  id             BigInt     @id @default(autoincrement())
+  pageKey        String     @unique @map("page_key") @db.VarChar(100)
+  pageTitle      String     @map("page_title") @db.VarChar(255)
+  pageDescription String?   @map("page_description") @db.Text
+  content        Json
+  isActive       Boolean    @default(true) @map("is_active")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdBy      BigInt?    @map("created_by")
+  updatedBy      BigInt?    @map("updated_by")
+
+  @@index([pageKey], map: "idx_page_key")
+  @@index([isActive], map: "idx_is_active")
+  @@index([createdAt], map: "idx_created_at")
+  @@map("page_content")
+}
+
+model ContactMessage {
+  id              BigInt            @id @default(autoincrement())
+  name            String            @db.VarChar(160)
+  email           String            @db.VarChar(160)
+  phone           String?           @db.VarChar(40)
+  subject         String            @db.VarChar(200)
+  message         String            @db.Text
+  preferredContact String           @default("email") @map("preferred_contact") @db.VarChar(20)
+  status          ContactStatus     @default(NEW)
+  isRead          Boolean           @default(false) @map("is_read")
+  response        String?           @db.Text
+  respondedAt     DateTime?         @map("responded_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@index([status], map: "idx_contact_status")
+  @@index([isRead], map: "idx_contact_read")
+  @@index([createdAt], map: "idx_contact_created")
+  @@index([email], map: "idx_contact_email")
+  @@map("contact_messages")
+}
+
+enum ContactStatus {
+  NEW
+  IN_PROGRESS
+  RESPONDED
+  CLOSED
+}

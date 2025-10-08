@@ -17,7 +17,9 @@ import {
   LogOut,
   ExternalLink,
   Shield,
-  Zap
+  Zap,
+  Mail,
+  FileText
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 
@@ -36,6 +38,8 @@ const navigation = [
   { name: 'Imágenes del Sitio', href: '/dashboard/website-images', icon: ImageIcon },
   { name: 'Imágenes Habitaciones', href: '/dashboard/room-types/images', icon: ImageIcon },
   { name: 'Usuarios Admin', href: '/dashboard/admin-users', icon: Users },
+  { name: 'Mensajes de Contacto', href: '/dashboard/contact-messages', icon: Mail },
+  { name: 'Gestión de Páginas', href: '/dashboard/pages', icon: FileText },
   { name: 'Integración Booking.com', href: '/dashboard/integration', icon: Zap },
   { name: 'Reportes', href: '/dashboard/reports', icon: BarChart3 },
   { name: 'Configuración', href: '/dashboard/settings', icon: Settings },
