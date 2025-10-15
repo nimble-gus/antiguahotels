@@ -48,7 +48,9 @@ export async function DELETE(
 
     // Eliminar de Cloudinary
     try {
-      await cloudinary.uploader.destroy(image.cloudinaryPublicId)
+      if (image.cloudinaryPublicId) {
+        await cloudinary.uploader.destroy(image.cloudinaryPublicId)
+      }
       console.log('✅ Image deleted from Cloudinary:', image.cloudinaryPublicId)
     } catch (cloudinaryError) {
       console.error('⚠️ Error deleting from Cloudinary:', cloudinaryError)
@@ -67,7 +69,7 @@ export async function DELETE(
           entityType: 'ACTIVITY',
           entityId: BigInt(activityId)
         },
-        orderBy: { sortOrder: 'asc' }
+        orderBy: { displayOrder: 'asc' }
       })
 
       if (remainingImages) {

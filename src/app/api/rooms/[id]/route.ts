@@ -52,7 +52,7 @@ export async function GET(
     // Obtener amenidades de la habitación usando SQL directo
     let roomAmenities = []
     try {
-      roomAmenities = await prisma.$queryRaw`
+      roomAmenities = await prisma.$queryRaw<any[]>`
         SELECT 
           a.id as amenity_id,
           a.name as amenity_name,
@@ -72,7 +72,7 @@ export async function GET(
     // Obtener imágenes del tipo de habitación
     let roomTypeImages = []
     try {
-      roomTypeImages = await prisma.$queryRaw`
+      roomTypeImages = await prisma.$queryRaw<any[]>`
         SELECT 
           ei.id as image_id,
           ei.image_url as imageUrl,

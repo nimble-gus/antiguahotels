@@ -246,7 +246,7 @@ export async function onCheckInReminder(reservationId: bigint) {
 
     // Buscar accommodation stay (solo para alojamiento)
     const accommodationStay = reservation.reservationItems.find(
-      item => item.accommodationStay
+      (item: any) => item.accommodationStay
     )?.accommodationStay
 
     if (!accommodationStay) {

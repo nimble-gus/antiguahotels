@@ -101,7 +101,7 @@ export default function NewReservationAdminSimple({
                 <Hr style={divider} />
                 
                 <Text style={label}>Total:</Text>
-                <Text style={totalAmount}>{currency} {totalAmount}</Text>
+                <Text style={totalAmountStyle}>{currency} {totalAmount}</Text>
                 
                 <Text style={label}>Estado de Pago:</Text>
                 <Text style={value}>{paymentStatus}</Text>
@@ -192,7 +192,7 @@ const value = {
   margin: '0 0 8px 0',
 }
 
-const totalAmount = {
+const totalAmountStyle = {
   color: '#059669',
   fontSize: '18px',
   fontWeight: 'bold',

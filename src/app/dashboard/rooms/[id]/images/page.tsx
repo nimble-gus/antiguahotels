@@ -151,7 +151,7 @@ export default function RoomImagesPage() {
             <div>
               <h4 className="font-medium text-gray-900 mb-2">vs. Imágenes del Tipo</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Imágenes generales del tipo "{room.roomType.name}"</li>
+                <li>• Imágenes generales del tipo &quot;{room.roomType.name}&quot;</li>
                 <li>• Representan todas las habitaciones del tipo</li>
                 <li>• Se usan en catálogos y búsquedas</li>
                 <li>• Características comunes del tipo</li>

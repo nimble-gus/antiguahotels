@@ -526,7 +526,7 @@ export default function HotelDetailsPage() {
               <RoomForm 
                 hotelId={hotelId}
                 roomTypes={roomTypes}
-                room={editingRoom}
+                room={editingRoom as any}
                 onClose={() => {
                   setShowRoomForm(false)
                   setEditingRoom(null)

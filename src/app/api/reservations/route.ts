@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // Serializar BigInt
-    const serializedReservations = reservations.map(reservation => ({
+    const serializedReservations = reservations.map((reservation: any) => ({
       ...reservation,
       id: reservation.id.toString(),
       guestId: reservation.guestId.toString(),
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
       updatedAt: reservation.updatedAt.toISOString(),
       checkin: reservation.checkin?.toISOString(),
       checkout: reservation.checkout?.toISOString(),
-      reservationItems: reservation.reservationItems.map(item => ({
+      reservationItems: reservation.reservationItems.map((item: any) => ({
         ...item,
         id: item.id.toString(),
         reservationId: item.reservationId.toString(),
@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
           } : null,
         } : null,
       })),
-      payments: reservation.payments.map(payment => ({
+      payments: reservation.payments.map((payment: any) => ({
         ...payment,
         id: payment.id.toString(),
         reservationId: payment.reservationId.toString(),
@@ -363,8 +363,8 @@ export async function POST(request: NextRequest) {
         specialRequests,
         notes,
         guestName,
-        checkIn,
-        checkOut,
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
         nights
       })
     } else if (itemType === 'ACTIVITY') {
@@ -392,203 +392,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    // Verificar capacidad
-    if (adults > roomType.maxAdults || (children || 0) > roomType.maxChildren) {
-      return NextResponse.json(
-        { error: 'Excede la capacidad máxima del tipo de habitación' },
-        { status: 400 }
-      )
-    }
-
-    // Buscar habitación disponible
-    const availableRoom = await findAvailableRoom(BigInt(roomTypeId), checkIn, checkOut)
-    
-    if (!availableRoom) {
-      return NextResponse.json(
-        { error: 'No hay habitaciones disponibles para las fechas seleccionadas' },
-        { status: 400 }
-      )
-    }
-
-    // Calcular precio total
-    const roomRate = roomType.baseRate
-    const totalAmount = roomRate.mul(nights)
-
-    // Generar número de confirmación
-    const confirmationNumber = await generateConfirmationNumber()
-    
-    console.log('🎫 Generated confirmation number:', confirmationNumber)
-    console.log('📊 Final reservation data:', {
-      confirmationNumber,
-      guestId,
-      checkIn: checkIn.toISOString(),
-      checkOut: checkOut.toISOString(),
-      nights,
-      totalAmount: totalAmount.toString(),
-      roomCode: availableRoom.code
-    })
-
-    // Crear reservación en transacción
-    const result = await prisma.$transaction(async (tx) => {
-      // Crear reservación principal
-      const reservation = await tx.reservation.create({
-        data: {
-          confirmationNumber,
-          guestId: BigInt(guestId),
-          status: 'PENDING',
-          checkin: checkIn,
-          checkout: checkOut,
-          totalAmount,
-          specialRequests: specialRequests || null,
-          notes: notes || null,
-          source: 'ADMIN',
-        }
-      })
-
-      // Crear item de reservación
-      const reservationItem = await tx.reservationItem.create({
-        data: {
-          reservationId: reservation.id,
-          itemType: 'ACCOMMODATION',
-          title: `${roomType.hotel.name} - ${roomType.name}`,
-          quantity: 1,
-          unitPrice: roomRate,
-          amount: totalAmount,
-          meta: {
-            nights,
-            adults,
-            children: children || 0,
-          }
-        }
-      })
-
-      // Crear detalle de alojamiento
-      const accommodationStay = await tx.accommodationStay.create({
-        data: {
-          reservationItemId: reservationItem.id,
-          hotelId: BigInt(hotelId),
-          roomTypeId: BigInt(roomTypeId),
-          assignedRoomId: availableRoom.id,
-          adults,
-          children: children || 0,
-          checkInDate: checkIn,
-          checkOutDate: checkOut,
-          nights,
-          guestName: guestName || null,
-        }
-      })
-
-      // Bloquear inventario de habitación
-      await blockRoomInventory(tx, availableRoom.id, checkIn, checkOut, reservationItem.id)
-
-      return { reservation, reservationItem, accommodationStay }
-    })
-
-    // Obtener reservación completa para respuesta
-    const fullReservation = await prisma.reservation.findUnique({
-      where: { id: result.reservation.id },
-      include: {
-        guest: true,
-        reservationItems: {
-          include: {
-            accommodationStay: {
-              include: {
-                hotel: true,
-                roomType: true,
-                assignedRoom: true,
-              }
-            }
-          }
-        }
-      }
-    })
-
-    // Serializar BigInt para respuesta
-    const serializedReservation = fullReservation ? {
-      ...fullReservation,
-      id: fullReservation.id.toString(),
-      guestId: fullReservation.guestId.toString(),
-      totalAmount: fullReservation.totalAmount.toString(),
-      createdAt: fullReservation.createdAt.toISOString(),
-      updatedAt: fullReservation.updatedAt.toISOString(),
-      checkin: fullReservation.checkin?.toISOString(),
-      checkout: fullReservation.checkout?.toISOString(),
-      guest: {
-        ...fullReservation.guest,
-        id: fullReservation.guest.id.toString(),
-        createdAt: fullReservation.guest.createdAt.toISOString(),
-        updatedAt: fullReservation.guest.updatedAt.toISOString(),
-        dateOfBirth: fullReservation.guest.dateOfBirth?.toISOString(),
-      },
-      reservationItems: fullReservation.reservationItems.map(item => ({
-        ...item,
-        id: item.id.toString(),
-        reservationId: item.reservationId.toString(),
-        unitPrice: item.unitPrice.toString(),
-        amount: item.amount.toString(),
-        createdAt: item.createdAt.toISOString(),
-        updatedAt: item.updatedAt.toISOString(),
-        accommodationStay: item.accommodationStay ? {
-          ...item.accommodationStay,
-          id: item.accommodationStay.id.toString(),
-          reservationItemId: item.accommodationStay.reservationItemId.toString(),
-          hotelId: item.accommodationStay.hotelId.toString(),
-          roomTypeId: item.accommodationStay.roomTypeId.toString(),
-          assignedRoomId: item.accommodationStay.assignedRoomId?.toString(),
-          checkInDate: item.accommodationStay.checkInDate.toISOString(),
-          checkOutDate: item.accommodationStay.checkOutDate.toISOString(),
-          createdAt: item.accommodationStay.createdAt.toISOString(),
-          hotel: item.accommodationStay.hotel ? {
-            ...item.accommodationStay.hotel,
-            id: item.accommodationStay.hotel.id.toString(),
-            createdAt: item.accommodationStay.hotel.createdAt.toISOString(),
-            updatedAt: item.accommodationStay.hotel.updatedAt.toISOString(),
-          } : null,
-          roomType: item.accommodationStay.roomType ? {
-            ...item.accommodationStay.roomType,
-            id: item.accommodationStay.roomType.id.toString(),
-            hotelId: item.accommodationStay.roomType.hotelId.toString(),
-            baseRate: item.accommodationStay.roomType.baseRate.toString(),
-            createdAt: item.accommodationStay.roomType.createdAt.toISOString(),
-            updatedAt: item.accommodationStay.roomType.updatedAt.toISOString(),
-          } : null,
-          assignedRoom: item.accommodationStay.assignedRoom ? {
-            ...item.accommodationStay.assignedRoom,
-            id: item.accommodationStay.assignedRoom.id.toString(),
-            hotelId: item.accommodationStay.assignedRoom.hotelId.toString(),
-            roomTypeId: item.accommodationStay.assignedRoom.roomTypeId.toString(),
-            createdAt: item.accommodationStay.assignedRoom.createdAt.toISOString(),
-            updatedAt: item.accommodationStay.assignedRoom.updatedAt.toISOString(),
-          } : null,
-        } : null,
-      }))
-    } : null
-
-    console.log('🚀 ABOUT TO TRIGGER NOTIFICATIONS - Reservation created successfully')
-    console.log('📋 Reservation ID:', result.reservation.id.toString())
-    console.log('📧 Full reservation guest email:', fullReservation?.guest?.email)
-
-    // 🔔 Disparar notificaciones automáticas
-    try {
-      console.log('🔔 NOTIFICATION TRIGGER: Starting for reservation:', result.reservation.id.toString())
-      console.log('📧 Guest email:', fullReservation?.guest?.email || 'NO EMAIL FOUND')
-      console.log('📧 Confirmation number:', result.reservation.confirmationNumber)
-      
-      const triggerResult = await onReservationCreated(result.reservation.id)
-      console.log('✅ NOTIFICATION TRIGGER: Completed successfully', triggerResult)
-    } catch (notificationError) {
-      console.error('❌ NOTIFICATION TRIGGER: Failed with error:', notificationError)
-      console.error('❌ Error stack:', notificationError instanceof Error ? notificationError.stack : 'No stack')
-      // No fallar la reservación por errores de notificación
-    }
-
-    return NextResponse.json({
-      message: 'Reservación creada exitosamente',
-      confirmationNumber,
-      reservation: serializedReservation
-    })
-
   } catch (error) {
     console.error('Error creating reservation:', error)
     return NextResponse.json(
@@ -807,7 +610,7 @@ async function createAccommodationReservation(data: {
     console.log('🎫 Generated confirmation number:', confirmationNumber)
 
     // Crear reservación en transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Crear reservación principal
       const reservation = await tx.reservation.create({
         data: {
@@ -949,7 +752,7 @@ async function createActivityReservation(data: {
     console.log('🎫 Generated confirmation number:', confirmationNumber)
 
     // Crear reservación en transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Crear reservación principal
       const reservation = await tx.reservation.create({
         data: {
@@ -1072,7 +875,7 @@ async function createPackageReservation(data: {
     })
 
     // Crear reservación en transacción
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Crear reservación principal
       const reservation = await tx.reservation.create({
         data: {
@@ -1303,7 +1106,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Eliminar en transacción
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // Liberar inventario de habitaciones
       for (const item of reservation.reservationItems) {
         if (item.accommodationStay) {
@@ -1320,7 +1123,7 @@ export async function DELETE(request: NextRequest) {
       await tx.accommodationStay.deleteMany({
         where: {
           reservationItemId: {
-            in: reservation.reservationItems.map(item => item.id)
+            in: reservation.reservationItems.map((item: any) => item.id)
           }
         }
       })
@@ -1329,7 +1132,7 @@ export async function DELETE(request: NextRequest) {
       await tx.activityBooking.deleteMany({
         where: {
           reservationItemId: {
-            in: reservation.reservationItems.map(item => item.id)
+            in: reservation.reservationItems.map((item: any) => item.id)
           }
         }
       })
@@ -1338,7 +1141,7 @@ export async function DELETE(request: NextRequest) {
       await tx.packageBooking.deleteMany({
         where: {
           reservationItemId: {
-            in: reservation.reservationItems.map(item => item.id)
+            in: reservation.reservationItems.map((item: any) => item.id)
           }
         }
       })
@@ -1347,7 +1150,7 @@ export async function DELETE(request: NextRequest) {
       await tx.shuttleTransfer.deleteMany({
         where: {
           reservationItemId: {
-            in: reservation.reservationItems.map(item => item.id)
+            in: reservation.reservationItems.map((item: any) => item.id)
           }
         }
       })

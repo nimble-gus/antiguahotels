@@ -322,7 +322,7 @@ export default function HotelDetailsPage() {
                 return (
                   <div key={amenity} className="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-purple-50 transition-colors">
                     <IconComponent className="h-8 w-8 text-antigua-purple mb-2" />
-                    <span className="text-sm text-gray-700 text-center">{getAmenityLabel(amenity)}</span>
+                    <span className="text-sm text-gray-700 text-center">{amenity}</span>
                   </div>
                 )
               })}

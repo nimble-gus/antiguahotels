@@ -38,7 +38,7 @@ export async function GET(
       console.log('🔍 Fetching amenities for rooms:', roomIds)
       
       // Usar FIND_IN_SET para evitar problemas con foreign keys
-      roomAmenities = await prisma.$queryRaw`
+      roomAmenities = await prisma.$queryRaw<any[]>`
         SELECT 
           ea.entity_id as room_id,
           a.id as amenity_id,
@@ -60,7 +60,7 @@ export async function GET(
       const roomTypeIds = rooms.map(r => r.roomTypeId.toString()).join(',')
       console.log('🖼️ Fetching images for room types:', roomTypeIds)
       
-      roomTypeImages = await prisma.$queryRaw`
+      roomTypeImages = await prisma.$queryRaw<any[]>`
         SELECT 
           ei.entity_id as room_type_id,
           ei.image_url as image_url,
@@ -113,7 +113,7 @@ export async function GET(
     // Serializar BigInt y agregar amenidades e imágenes
     const serializedRooms = rooms.map(room => {
       const roomTypeImages = imagesMap.get(room.roomTypeId.toString()) || []
-      const primaryImage = roomTypeImages.find(img => img.isPrimary) || roomTypeImages[0]
+      const primaryImage = roomTypeImages.find((img: any) => img.isPrimary) || roomTypeImages[0]
       
       return {
         ...room,

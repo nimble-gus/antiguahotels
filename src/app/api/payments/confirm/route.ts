@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       await prisma.payment.updateMany({
         where: { paymentIntentId },
         data: { 
-          status: 'FAILED',
+          status: 'PENDING',
           processedAt: new Date(),
           notes: `Payment failed: ${stripeResult.status}`
         }
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         data: {
           status: 'PAID',
           processedAt: new Date(),
-          txnRef: stripeResult.charges[0]?.id || paymentIntentId,
+          txnRef: paymentIntentId,
           gatewayResponse: stripeResult as any,
           notes: 'Pago procesado exitosamente por Stripe'
         }

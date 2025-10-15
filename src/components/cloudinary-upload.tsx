@@ -226,7 +226,7 @@ export default function CloudinaryUpload({
         <h4 className="font-medium text-blue-900 mb-2">Instrucciones:</h4>
         <ul className="text-sm text-blue-800 space-y-1">
           <li>• Editor de recorte integrado para ajustar imágenes</li>
-          <li>• Se guardarán en la carpeta "website-images"</li>
+          <li>• Se guardarán en la carpeta &quot;website-images&quot;</li>
           <li>• Formatos recomendados: JPG para fotos, PNG para gráficos</li>
           <li>• Tamaño recomendado para hero: 1920x1080px (16:9)</li>
           <li>• Máximo 10MB - se optimizará automáticamente</li>

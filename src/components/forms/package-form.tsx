@@ -704,7 +704,7 @@ export function PackageForm({ package: pkg, onClose, onSave }: PackageFormProps)
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600">
-              💡 Para agregar, editar o eliminar imágenes del paquete, utiliza el botón "Gestionar Imágenes" 
+              💡 Para agregar, editar o eliminar imágenes del paquete, utiliza el botón &quot;Gestionar Imágenes&quot; 
               que abrirá una ventana dedicada con todas las herramientas de Cloudinary.
             </p>
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">

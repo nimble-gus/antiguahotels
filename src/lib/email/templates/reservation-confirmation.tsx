@@ -193,7 +193,7 @@ export default function ReservationConfirmation({
                       <Text style={totalText}>Total a Pagar:</Text>
                     </Column>
                     <Column style={totalValue}>
-                      <Text style={totalAmount}>{currency} {totalAmount}</Text>
+                      <Text style={totalAmountStyle}>{currency} {totalAmount}</Text>
                     </Column>
                   </Row>
                 </Section>
@@ -420,7 +420,7 @@ const totalText = {
   margin: '0',
 }
 
-const totalAmount = {
+const totalAmountStyle = {
   color: '#ffffff',
   fontSize: '24px',
   fontWeight: 'bold',

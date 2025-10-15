@@ -160,24 +160,24 @@ export default function ActivitiesPage() {
 
   const getDifficultyLabel = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return t('activities.difficulty.easy', 'Fácil')
-      case 'moderate': return t('activities.difficulty.moderate', 'Moderado')
-      case 'challenging': return t('activities.difficulty.challenging', 'Difícil')
-      case 'extreme': return t('activities.difficulty.extreme', 'Extremo')
-      default: return t('activities.difficulty.moderate', 'Moderado')
+      case 'easy': return t('activities.difficulty.easy')
+      case 'moderate': return t('activities.difficulty.moderate')
+      case 'challenging': return t('activities.difficulty.challenging')
+      case 'extreme': return t('activities.difficulty.extreme')
+      default: return t('activities.difficulty.moderate')
     }
   }
 
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} ${t('activities.minutes', 'min')}`
+    if (minutes < 60) return `${minutes} ${t('activities.minutes')}`
     const hours = Math.floor(minutes / 60)
     const remainingMinutes = minutes % 60
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}${t('activities.minutes', 'min')}` : `${hours}h`
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}${t('activities.minutes')}` : `${hours}h`
   }
 
   const formatParticipants = (min: number, max?: number) => {
-    if (max) return `${min}-${max} ${t('activities.people', 'personas')}`
-    return `${min}+ ${t('activities.people', 'personas')}`
+    if (max) return `${min}-${max} ${t('activities.people')}`
+    return `${min}+ ${t('activities.people')}`
   }
 
   return (
@@ -188,10 +188,10 @@ export default function ActivitiesPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                {t('activities.title', 'Nuestras Actividades')}
+                {t('activities.title')}
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                {t('activities.subtitle', 'Descubre las mejores experiencias en Antigua Guatemala')}
+                {t('activities.subtitle')}
               </p>
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function ActivitiesPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     type="text"
-                    placeholder={t('activities.searchPlaceholder', 'Buscar actividades...')}
+                    placeholder={t('activities.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -261,7 +261,7 @@ export default function ActivitiesPage() {
 
                 <Button onClick={handleSearch}>
                   <Search className="h-4 w-4 mr-2" />
-                  {t('search.search', 'Buscar')}
+                  {t('search.search')}
                 </Button>
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function ActivitiesPage() {
                       {activity.isFeatured && (
                         <div className="absolute top-2 left-2">
                           <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                            {t('activities.featured', 'Destacada')}
+                            {t('activities.featured')}
                           </span>
                         </div>
                       )}
@@ -384,7 +384,7 @@ export default function ActivitiesPage() {
                         </div>
                         <Link href={`/activities/${activity.id}`}>
                           <Button size="sm">
-                            {t('activities.viewDetails', 'Ver detalles')}
+                            {t('activities.viewDetails')}
                             <ArrowRight className="h-4 w-4 ml-1" />
                           </Button>
                         </Link>

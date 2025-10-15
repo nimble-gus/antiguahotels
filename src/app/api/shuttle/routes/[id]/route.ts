@@ -199,12 +199,12 @@ export async function DELETE(
     await prisma.$transaction(async (tx) => {
       // Eliminar horarios de la ruta
       await tx.shuttleSchedule.deleteMany({
-        where: { shuttleRouteId: BigInt(routeId) }
+        where: { routeId: BigInt(routeId) }
       })
 
       // Eliminar disponibilidad de la ruta
       await tx.shuttleAvailability.deleteMany({
-        where: { shuttleRouteId: BigInt(routeId) }
+        where: { routeId: BigInt(routeId) }
       })
 
       // Finalmente eliminar la ruta

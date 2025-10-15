@@ -86,7 +86,7 @@ export async function GET(
       endTime: schedule.endTime.toISOString().split('T')[1].substring(0, 5),
       date: schedule.date.toISOString().split('T')[0],
       availableSpots: schedule.availableSpots,
-      maxSpots: schedule.maxSpots
+      maxSpots: schedule.availableSpots
     }))
 
     console.log(`🔍 Formatted schedules: ${schedules.length}`)

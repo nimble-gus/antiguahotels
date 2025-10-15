@@ -300,8 +300,10 @@ async function checkHotelAvailabilityDirect(
     // Contar habitaciones bloqueadas en el rango de fechas
     const blockedRooms = await prisma.roomInventory.count({
       where: {
-        roomTypeId: BigInt(roomTypeId),
-        date: {
+        room: {
+          roomTypeId: BigInt(roomTypeId)
+        },
+        stayDate: {
           gte: checkInDateObj,
           lt: checkOutDateObj // Excluir el día de checkout
         },
@@ -312,13 +314,17 @@ async function checkHotelAvailabilityDirect(
     // Obtener total de habitaciones de este tipo
     const roomType = await prisma.roomType.findUnique({
       where: { id: BigInt(roomTypeId) },
-      select: { totalRooms: true }
+      select: { 
+        rooms: {
+          select: { id: true }
+        }
+      }
     })
 
     if (!roomType) return false
 
     // Verificar si hay habitaciones disponibles
-    const availableRooms = roomType.totalRooms - blockedRooms
+    const availableRooms = roomType.rooms.length - blockedRooms
     return availableRooms > 0
 
   } catch (error) {

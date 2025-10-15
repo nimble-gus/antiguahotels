@@ -144,7 +144,6 @@ export async function POST(request: NextRequest) {
       },
       reservation: {
         id: reservation.id.toString(),
-        serviceType: reservation.serviceType,
         totalAmount: parseFloat(reservation.totalAmount.toString()),
         currency: reservation.currency,
         status: reservation.status,

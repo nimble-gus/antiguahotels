@@ -26,7 +26,12 @@ import { useState, useEffect, useMemo } from 'react'
 // Componente que obtiene las actividades destacadas
 async function getFeaturedActivities() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/public/featured-activities`, {
+    // Usar la URL actual en lugar de una variable de entorno
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    
+    const response = await fetch(`${baseUrl}/api/public/featured-activities`, {
       cache: 'no-store' // Para obtener siempre las actividades más recientes
     })
     
@@ -48,7 +53,12 @@ async function getFeaturedActivities() {
 // Componente que obtiene las imágenes dinámicamente
 async function getHeroImages() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/public/website-images?pageType=home&pageSection=hero`, {
+    // Usar la URL actual en lugar de una variable de entorno
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    
+    const response = await fetch(`${baseUrl}/api/public/website-images?pageType=home&pageSection=hero`, {
       cache: 'no-store' // Para obtener siempre las imágenes más recientes
     })
     
@@ -376,7 +386,7 @@ export default function HomePage() {
                 </div>
                 <Quote className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-400 mb-3 sm:mb-4" />
                 <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 italic">
-                  "{testimonial.text}"
+                  &quot;{testimonial.text}&quot;
                 </p>
                 <div>
                   {/* Nombre y nacionalidad removidos */}

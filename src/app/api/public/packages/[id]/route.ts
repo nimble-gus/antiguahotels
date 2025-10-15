@@ -104,7 +104,7 @@ export async function GET(
         id: ph.roomType.id.toString(),
         name: ph.roomType.name,
         description: ph.roomType.description,
-        maxOccupancy: ph.roomType.maxOccupancy,
+        maxOccupancy: ph.roomType.occupancy,
         bedConfiguration: ph.roomType.bedConfiguration
       },
       nights: ph.nights,

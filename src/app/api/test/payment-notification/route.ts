@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     const emailResult = await resend.emails.send({
       from: `${process.env.RESEND_FROM_NAME || 'Antigua Hotels'} <${process.env.RESEND_FROM_EMAIL || 'noreply@antiguahotelstours.com'}>`,
-      to: [payment.reservation.guest.email],
+      to: [payment.reservation.guest.email || ''],
       subject: subject,
       html: html,
     })

@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       }) || '',
       nights: accommodationStay?.nights || 0,
       roomType: accommodationStay?.roomType.name || 'Servicio',
-      guests: accommodationStay?.guests || 1,
+      guests: accommodationStay?.adults || 1,
       totalAmount: reservation.totalAmount.toString(),
       currency: reservation.currency,
       reservationItems: [],
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     const guestEmailResult = await resend.emails.send({
       from: `${process.env.RESEND_FROM_NAME || 'Antigua Hotels'} <${process.env.RESEND_FROM_EMAIL || 'noreply@antiguahotels.com'}>`,
-      to: [reservation.guest.email],
+      to: [reservation.guest.email || ''],
       subject: guestSubject,
       html: guestHtml,
     })
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     const adminEmailData = {
       confirmationNumber: reservation.confirmationNumber,
       guestName: `${reservation.guest.firstName} ${reservation.guest.lastName}`,
-      guestEmail: reservation.guest.email,
+      guestEmail: reservation.guest.email || '',
       guestPhone: reservation.guest.phone || 'No proporcionado',
       hotelName: accommodationStay?.hotel.name || 'Servicio de Reservación',
       roomType: accommodationStay?.roomType.name || 'Servicio',
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
         day: 'numeric'
       }) || '',
       nights: accommodationStay?.nights || 0,
-      guests: accommodationStay?.guests || 1,
+      guests: accommodationStay?.adults || 1,
       totalAmount: reservation.totalAmount.toString(),
       currency: reservation.currency,
       paymentStatus: reservation.paymentStatus,

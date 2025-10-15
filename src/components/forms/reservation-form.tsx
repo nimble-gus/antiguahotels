@@ -348,7 +348,9 @@ export function ReservationForm({ onClose, onSave }: ReservationFormProps) {
                 onClick={() => setReservationType('ACTIVITY')}
               >
                 <CardContent className="p-6 text-center">
-                  <MapPin className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <div className="h-12 w-12 text-green-500 mx-auto mb-4 flex items-center justify-center">
+                    📍
+                  </div>
                   <h4 className="text-lg font-semibold text-gray-900 mb-2">Actividad</h4>
                   <p className="text-gray-600 text-sm">
                     Reservar actividades turísticas en horarios específicos
@@ -567,7 +569,7 @@ export function ReservationForm({ onClose, onSave }: ReservationFormProps) {
                       setReservationData(prev => ({
                         ...prev,
                         checkInDate: checkIn,
-                        checkOutDate: checkOut
+                        checkOutDate: checkOut || ''
                       }))
                     }}
                     selectedCheckIn={reservationData.checkInDate}

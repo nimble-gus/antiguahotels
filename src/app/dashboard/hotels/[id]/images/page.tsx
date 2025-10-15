@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { SimpleImageUpload } from '@/components/simple-image-upload'
+import SimpleImageUpload from '@/components/simple-image-upload'
 import { ArrowLeft, Hotel, Bed } from 'lucide-react'
 
 interface Hotel {
@@ -98,9 +98,12 @@ export default function HotelImagesPage() {
 
       {/* Imágenes del Hotel */}
       <SimpleImageUpload
-        entityType="HOTEL"
-        entityId={hotelId}
-        title="Imágenes del Hotel"
+        onUploadComplete={(imageUrl, publicId) => {
+          console.log('Imagen subida:', imageUrl, publicId)
+        }}
+        onUploadError={(error) => {
+          console.error('Error al subir imagen:', error)
+        }}
       />
 
       {/* Imágenes por Tipo de Habitación */}
@@ -116,9 +119,12 @@ export default function HotelImagesPage() {
           {roomTypes.map((roomType) => (
             <SimpleImageUpload
               key={roomType.id}
-              entityType="ROOM_TYPE"
-              entityId={roomType.id}
-              title={`${roomType.name} (${roomType._count.rooms} habitaciones)`}
+              onUploadComplete={(imageUrl, publicId) => {
+                console.log('Imagen subida:', imageUrl, publicId)
+              }}
+              onUploadError={(error) => {
+                console.error('Error al subir imagen:', error)
+              }}
             />
           ))}
         </div>

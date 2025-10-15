@@ -62,12 +62,12 @@ export async function POST(request: NextRequest) {
       amount: amount,
       currency: currency || 'USD',
       reservationId: reservationId,
-      customerEmail: reservation.guest.email,
+      customerEmail: reservation.guest.email || undefined,
       description: `Pago para reservación ${reservation.confirmationNumber} - ${reservation.guest.firstName} ${reservation.guest.lastName}`,
       metadata: {
         guestName: `${reservation.guest.firstName} ${reservation.guest.lastName}`,
         confirmationNumber: reservation.confirmationNumber,
-        serviceType: reservation.serviceType
+        serviceType: 'ACCOMMODATION'
       }
     })
 
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
           reservationId: BigInt(reservationId),
           paymentIntentId: cyberSourceResult.transactionId || `cs_${Date.now()}`,
           provider: 'CYBERSOURCE',
-          status: 'INITIATED',
+          status: 'PENDING',
           paymentMethod: 'CREDIT_CARD',
           amount: amount,
           currency: currency || 'USD',
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
         await prisma.payment.update({
           where: { id: payment.id },
           data: {
-            status: 'FAILED',
+            status: 'PENDING',
             notes: 'Pago falló en CyberSource/NeoNet',
             gatewayResponse: confirmationResult as any
           }
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: false,
           error: 'El pago fue rechazado por el procesador',
-          details: confirmationResult.message
+          details: 'Error en el procesamiento del pago'
         }, { status: 400 })
       }
     } else {

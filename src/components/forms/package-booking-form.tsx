@@ -272,7 +272,7 @@ export function PackageBookingForm({ packageData, onClose, onSuccess }: PackageB
         <Label className="text-sm font-medium text-gray-700 mb-3 block">
           Fecha de inicio
         </Label>
-        {console.log('🔍 Sessions data:', packageData.sessions)}
+        {packageData.sessions && (() => { console.log('🔍 Sessions data:', packageData.sessions); return null; })()}
         {packageData.sessions && packageData.sessions.length > 0 ? (
           <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto">
             {packageData.sessions.map((session) => (

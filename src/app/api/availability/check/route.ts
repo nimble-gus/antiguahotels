@@ -64,8 +64,8 @@ export async function GET(request: NextRequest) {
               OR: [
                 {
                   AND: [
-                    { checkIn: { lte: endDate } },
-                    { checkOut: { gte: startDate } }
+                    { checkInDate: { lte: endDate } },
+                    { checkOutDate: { gte: startDate } }
                   ]
                 }
               ]
@@ -161,8 +161,8 @@ export async function GET(request: NextRequest) {
         internalReservations: internalReservations.map(reservation => ({
           id: reservation.id.toString(),
           confirmationNumber: reservation.confirmationNumber,
-          checkIn: reservation.checkIn?.toISOString().split('T')[0],
-          checkOut: reservation.checkOut?.toISOString().split('T')[0],
+          checkIn: reservation.checkin?.toISOString().split('T')[0],
+          checkOut: reservation.checkout?.toISOString().split('T')[0],
           status: reservation.status,
           roomType: reservation.reservationItems[0]?.accommodationStay?.roomType?.name || 'N/A'
         })),

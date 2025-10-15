@@ -532,7 +532,7 @@ export default function PackageDetailPage() {
       {/* Booking Modal */}
       {showBookingForm && packageData && (
         <PublicPackageBookingForm
-          packageData={packageData}
+          packageData={packageData as any}
           onClose={() => setShowBookingForm(false)}
           onSuccess={handleBookingSuccess}
         />

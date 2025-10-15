@@ -211,7 +211,7 @@ export default function ActivityDetailPage() {
       return
     }
     
-    const totalAmount = parseFloat(activity.basePrice) * participants
+    const totalAmount = parseFloat(activity.basePrice.toString()) * participants
     console.log('🔍 totalAmount:', totalAmount)
     
     setBookingData({
@@ -245,7 +245,7 @@ export default function ActivityDetailPage() {
       return
     }
     
-    const totalAmount = parseFloat(activity.basePrice) * participants
+    const totalAmount = parseFloat(activity.basePrice.toString()) * participants
     
     setBookingData({
       serviceType: 'ACTIVITY',
@@ -301,7 +301,7 @@ export default function ActivityDetailPage() {
       console.log('🔍 getUniqueDates: No schedules in activity')
       return []
     }
-    const dates = [...new Set(activity.schedules.map(schedule => schedule.date))]
+    const dates = Array.from(new Set(activity.schedules.map(schedule => schedule.date)))
     console.log('🔍 getUniqueDates: Unique dates', dates)
     return dates.sort()
   }
@@ -523,7 +523,7 @@ export default function ActivityDetailPage() {
                       </div>
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-1" />
-                        {formatParticipants(activity.minParticipants, activity.maxParticipants)}
+                        {formatParticipants(activity.minParticipants || 1, activity.maxParticipants || 50)}
                       </div>
                     </div>
                   </div>
@@ -612,7 +612,7 @@ export default function ActivityDetailPage() {
                 </div>
 
                 {/* Selección de fecha */}
-                {uniqueDates.length > 0 && (
+                {uniqueDates.length > 0 ? (
                   <div className="mb-6">
                     <h3 className="font-semibold text-gray-900 mb-3">Seleccionar fecha</h3>
                     <div className="grid grid-cols-1 gap-2">
@@ -643,10 +643,9 @@ export default function ActivityDetailPage() {
                       ))}
                     </div>
                   </div>
-                )}
+                ) : null}
 
                 {/* Horarios disponibles */}
-                {console.log('🔍 Rendering schedules check:', { availableSchedulesLength: availableSchedules.length, availableSchedules })}
                 {availableSchedules.length > 0 ? (
                   <div className="mb-6">
                     <h3 className="font-semibold text-gray-900 mb-3">

@@ -110,7 +110,7 @@ export async function PUT(
         createdAt: message.createdAt.toISOString(),
         updatedAt: message.updatedAt.toISOString()
       },
-      message: 'Mensaje actualizado exitosamente'
+      successMessage: 'Mensaje actualizado exitosamente'
     })
 
   } catch (error) {

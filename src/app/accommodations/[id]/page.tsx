@@ -287,7 +287,7 @@ export default function RoomDetailsPage() {
       totalAmount: totalAmount,
       currency: 'USD',
       description: `Habitación ${room.roomType.name} en ${room.hotel.name}`,
-      image: room.images?.[0]?.imageUrl
+      image: room.roomType.imageUrl
     })
     
     setShowBookingForm(true)

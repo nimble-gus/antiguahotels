@@ -810,11 +810,11 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                 <div className="space-y-4">
                   <AvailabilityCalendar
                     roomTypeId={selectedRoomType.id}
-                    onDateRangeSelect={(checkIn: string, checkOut: string) => {
+                    onDateRangeSelect={(checkIn: string, checkOut?: string) => {
                       setAccommodationData({
                         ...accommodationData,
                         checkInDate: checkIn,
-                        checkOutDate: checkOut
+                        checkOutDate: checkOut || ''
                       })
                       // Verificar disponibilidad inmediatamente
                       if (checkIn && checkOut && selectedRoomType) {
@@ -1045,15 +1045,15 @@ export function UnifiedReservationForm({ onClose, onSave, reservation }: Unified
                           const participants = parseInt(e.target.value) || 1
                           setActivityData({ ...activityData, participants })
                         }}
-                        min={selectedActivity.minParticipants}
+                        min={selectedActivity?.minParticipants || 1}
                         max={Math.min(
-                          selectedActivity.maxParticipants || 100,
+                          selectedActivity?.maxParticipants || 100,
                           selectedSchedule.availableSpots - selectedSchedule._count.activityBookings
                         )}
                         className="w-full px-3 py-2 border border-green-300 rounded-md focus:ring-2 focus:ring-green-500"
                       />
                       <p className="text-xs text-green-600 mt-1">
-                        Mín: {selectedActivity.minParticipants}, 
+                        Mín: {selectedActivity?.minParticipants || 1}, 
                         Máx disponible: {selectedSchedule.availableSpots - selectedSchedule._count.activityBookings}
                       </p>
                     </div>

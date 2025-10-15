@@ -136,16 +136,15 @@ async function getTopActivitiesData(dateFrom: Date, dateTo: Date, limit: number)
 
   // Obtener detalles de las actividades
   const activitiesWithDetails = await Promise.all(
-    topActivities.map(async (item) => {
+    topActivities.map(async (item: any) => {
       const activity = await prisma.activity.findUnique({
         where: { id: item.activityId },
         select: {
           name: true,
           description: true,
           basePrice: true,
-          duration: true,
-          location: true,
-          category: true
+          durationHours: true,
+          location: true
         }
       })
 
@@ -165,10 +164,9 @@ async function getTopActivitiesData(dateFrom: Date, dateTo: Date, limit: number)
         activityId: item.activityId.toString(),
         name: activity?.name || 'Actividad Desconocida',
         description: activity?.description || '',
-        category: activity?.category || 'Sin categoría',
         location: activity?.location || '',
         basePrice: activity?.basePrice?.toString() || '0',
-        duration: activity?.duration || 0,
+        duration: activity?.durationHours || 0,
         bookings: item._count.id,
         totalParticipants: item._sum.participants || 0,
         totalRevenue: (totalRevenue._sum.amount || 0).toString(),
@@ -196,7 +194,7 @@ async function getTopRoomTypesData(dateFrom: Date, dateTo: Date, limit: number) 
 
   // Obtener detalles de los tipos de habitación
   const roomTypesWithDetails = await Promise.all(
-    topRoomTypes.map(async (item) => {
+    topRoomTypes.map(async (item: any) => {
       const roomType = await prisma.roomType.findUnique({
         where: { id: item.roomTypeId },
         include: {
@@ -232,7 +230,7 @@ async function getTopRoomTypesData(dateFrom: Date, dateTo: Date, limit: number) 
         name: roomType?.name || 'Tipo Desconocido',
         hotelName: roomType?.hotel.name || 'Hotel Desconocido',
         baseRate: roomType?.baseRate?.toString() || '0',
-        capacity: roomType?.capacity || 0,
+        capacity: roomType?.occupancy || 0,
         totalRooms: totalRooms,
         bookings: item._count.id,
         totalNights: item._sum.nights || 0,
@@ -262,7 +260,7 @@ async function getTopHotelsData(dateFrom: Date, dateTo: Date, limit: number) {
 
   // Obtener detalles de los hoteles
   const hotelsWithDetails = await Promise.all(
-    topHotels.map(async (item) => {
+    topHotels.map(async (item: any) => {
       const hotel = await prisma.hotel.findUnique({
         where: { id: item.hotelId },
         select: {
@@ -271,7 +269,7 @@ async function getTopHotelsData(dateFrom: Date, dateTo: Date, limit: number) {
           city: true,
           country: true,
           totalRooms: true,
-          starRating: true,
+          rating: true,
           _count: {
             select: { roomTypes: true }
           }
@@ -318,7 +316,7 @@ async function getTopHotelsData(dateFrom: Date, dateTo: Date, limit: number) {
         address: hotel?.address || '',
         city: hotel?.city || '',
         country: hotel?.country || '',
-        starRating: hotel?.starRating || 0,
+        starRating: hotel?.rating || 0,
         totalRooms: totalRooms,
         roomTypes: hotel?._count.roomTypes || 0,
         bookings: item._count.id,
@@ -350,15 +348,15 @@ async function getTopPackagesData(dateFrom: Date, dateTo: Date, limit: number) {
 
   // Obtener detalles de los paquetes
   const packagesWithDetails = await Promise.all(
-    topPackages.map(async (item) => {
+    topPackages.map(async (item: any) => {
       const packageData = await prisma.package.findUnique({
         where: { id: item.packageId },
         select: {
           name: true,
           description: true,
-          duration: true,
-          fixedPrice: true,
-          fixedCapacity: true,
+          durationDays: true,
+          basePrice: true,
+          capacity: true,
           minParticipants: true,
           _count: {
             select: {
@@ -385,9 +383,9 @@ async function getTopPackagesData(dateFrom: Date, dateTo: Date, limit: number) {
         packageId: item.packageId.toString(),
         name: packageData?.name || 'Paquete Desconocido',
         description: packageData?.description || '',
-        duration: packageData?.duration || 0,
-        fixedPrice: packageData?.fixedPrice?.toString() || '0',
-        fixedCapacity: packageData?.fixedCapacity || 0,
+        duration: packageData?.durationDays || 0,
+        fixedPrice: packageData?.basePrice?.toString() || '0',
+        fixedCapacity: packageData?.capacity || 0,
         minParticipants: packageData?.minParticipants || 0,
         includedHotels: packageData?._count.packageHotels || 0,
         includedActivities: packageData?._count.packageActivities || 0,

@@ -129,7 +129,7 @@ export default function SignInPage() {
 
             <div className="mt-6 text-center">
               <p className="text-xs text-gray-500">
-                Demo credentials: admin@antiguahotels.com / admin123
+                Contacta al administrador para obtener acceso
               </p>
             </div>
           </CardContent>
@@ -137,7 +137,7 @@ export default function SignInPage() {
 
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
-            © 2024 Antigua Hotels. Todos los derechos reservados.
+            © 2025 Antigua Hotels. Todos los derechos reservados.
           </p>
         </div>
       </div>

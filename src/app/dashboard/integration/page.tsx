@@ -466,7 +466,7 @@ export default function IntegrationPage() {
             <div className="p-4 bg-purple-50 rounded-lg">
               <h4 className="font-semibold text-purple-900 mb-2">4. Probar la Integración</h4>
               <p className="text-purple-800 text-sm">
-                Usa el botón "Probar Conexión" para verificar que todo esté configurado correctamente.
+                Usa el botón &quot;Probar Conexión&quot; para verificar que todo esté configurado correctamente.
               </p>
             </div>
           </div>

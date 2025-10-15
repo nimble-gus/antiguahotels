@@ -137,7 +137,7 @@ async function getEmailTemplate(templateName: string, data: Record<string, any>)
 
     // Renderizar el template con los datos
     console.log(`🎨 Rendering template with data:`, Object.keys(data))
-    const renderedHtml = render(TemplateComponent(data))
+    const renderedHtml = render(TemplateComponent(data as any))
     
     // Asegurar que tenemos un string (manejo robusto)
     const html = await Promise.resolve(renderedHtml).then(html => 
@@ -149,10 +149,10 @@ async function getEmailTemplate(templateName: string, data: Record<string, any>)
     const text = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 
     // Obtener el subject del template o usar uno por defecto
-    const subject = TemplateComponent.subject 
-      ? (typeof TemplateComponent.subject === 'function' 
-          ? TemplateComponent.subject(data) 
-          : TemplateComponent.subject)
+    const subject = (TemplateComponent as any).subject 
+      ? (typeof (TemplateComponent as any).subject === 'function' 
+          ? (TemplateComponent as any).subject(data) 
+          : (TemplateComponent as any).subject)
       : `Notificación - ${templateName}`
 
     console.log(`📧 Generated subject: ${subject}`)
@@ -221,7 +221,7 @@ async function logNotification({
         reservationId,
         guestId,
         adminUserId,
-        metadata: metadata ? JSON.stringify(metadata) : null
+        metadata: metadata ? JSON.stringify(metadata) : undefined
       }
     })
   } catch (error) {

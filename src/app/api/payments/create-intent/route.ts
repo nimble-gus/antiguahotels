@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         reservationId: BigInt(reservationId),
         paymentIntentId: paymentIntent.paymentIntentId,
         provider: 'STRIPE',
-        status: 'INITIATED',
+        status: 'PENDING',
         paymentMethod: 'CREDIT_CARD', // Se actualizará cuando se complete
         amount: pendingAmount,
         currency: currency.toUpperCase(),
@@ -93,7 +93,6 @@ export async function POST(request: NextRequest) {
     console.log('✅ Payment Intent created and registered')
 
     return NextResponse.json({
-      success: true,
       ...paymentIntent,
       pendingAmount,
       reservationInfo: {

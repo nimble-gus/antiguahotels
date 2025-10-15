@@ -26,7 +26,7 @@ export async function GET(
       },
       orderBy: [
         { isPrimary: 'desc' }, // Principal primero
-        { sortOrder: 'asc' }   // Luego por orden
+        { displayOrder: 'asc' }   // Luego por orden
       ]
     })
 
@@ -36,7 +36,7 @@ export async function GET(
       imageUrl: image.imageUrl,
       altText: image.altText,
       isPrimary: image.isPrimary,
-      sortOrder: image.sortOrder,
+      displayOrder: image.displayOrder,
       cloudinaryPublicId: image.cloudinaryPublicId,
       createdAt: image.createdAt.toISOString()
     }))
@@ -119,7 +119,7 @@ export async function POST(
         cloudinaryPublicId,
         altText: altText || null,
         isPrimary: isPrimary || false,
-        sortOrder: sortOrder || 1
+        displayOrder: sortOrder || 1
       }
     })
 
@@ -130,7 +130,7 @@ export async function POST(
         imageUrl: newImage.imageUrl,
         altText: newImage.altText,
         isPrimary: newImage.isPrimary,
-        sortOrder: newImage.sortOrder,
+        displayOrder: newImage.displayOrder,
         cloudinaryPublicId: newImage.cloudinaryPublicId,
         createdAt: newImage.createdAt.toISOString()
       }

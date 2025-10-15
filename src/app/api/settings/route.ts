@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     console.log('✅ Found settings:', settings.length)
 
     // Organizar settings por categoría
-    const organizedSettings = settings.reduce((acc, setting) => {
+    const organizedSettings = settings.reduce((acc: any, setting: any) => {
       const [category, key] = setting.settingKey.split('.')
       
       if (!acc[category]) {
@@ -41,20 +41,20 @@ export async function GET(request: NextRequest) {
       }
       
       // Convertir valor según el tipo
-      let value = setting.settingValue
+      let value: any = setting.settingValue
       switch (setting.dataType) {
         case 'INTEGER':
-          value = parseInt(setting.settingValue)
+          value = parseInt(setting.settingValue || '0', 10)
           break
         case 'DECIMAL':
-          value = parseFloat(setting.settingValue)
+          value = parseFloat(setting.settingValue || '0')
           break
         case 'BOOLEAN':
           value = setting.settingValue === 'true'
           break
         case 'JSON':
           try {
-            value = JSON.parse(setting.settingValue)
+            value = JSON.parse(setting.settingValue || '{}')
           } catch {
             value = setting.settingValue
           }

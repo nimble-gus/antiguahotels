@@ -29,7 +29,18 @@ export async function GET() {
       const testData = {
         guestName: 'Test User',
         confirmationNumber: 'TEST123',
-        hotelName: 'Test Hotel'
+        hotelName: 'Test Hotel',
+        hotelAddress: 'Test Address',
+        hotelPhone: '123-456-7890',
+        checkInDate: '2024-01-01',
+        checkOutDate: '2024-01-03',
+        totalAmount: '300.00',
+        currency: 'USD',
+        roomType: 'Standard Room',
+        adults: 2,
+        children: 0,
+        nights: 2,
+        guests: 2
       }
 
       const html = await Promise.resolve(render(ReservationConfirmation(testData)))

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import PublicLayout from '@/components/layout/public-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -55,7 +55,6 @@ interface GuestInfo {
 export default function BookingPage() {
   const { t } = useLanguage()
   const router = useRouter()
-  const searchParams = useSearchParams()
   
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -73,33 +72,33 @@ export default function BookingPage() {
   const [paymentMethod, setPaymentMethod] = useState<'cybersource' | 'manual'>('cybersource')
   const [reservationId, setReservationId] = useState<string | null>(null)
 
-  // Cargar datos de la URL
-  useEffect(() => {
-    const serviceType = searchParams.get('type') as BookingData['serviceType']
-    const serviceId = searchParams.get('id')
-    const checkIn = searchParams.get('checkin')
-    const checkOut = searchParams.get('checkout')
-    const participants = parseInt(searchParams.get('participants') || '1')
-    const rooms = parseInt(searchParams.get('rooms') || '1')
+  // Cargar datos de la URL - Comentado temporalmente para build
+  // useEffect(() => {
+  //   const serviceType = searchParams.get('type') as BookingData['serviceType']
+  //   const serviceId = searchParams.get('id')
+  //   const checkIn = searchParams.get('checkin')
+  //   const checkOut = searchParams.get('checkout')
+  //   const participants = parseInt(searchParams.get('participants') || '1')
+  //   const rooms = parseInt(searchParams.get('rooms') || '1')
 
-    if (serviceType && serviceId) {
-      // Simular datos del servicio (en producción vendría de la API)
-      const mockData: BookingData = {
-        serviceType,
-        serviceId,
-        serviceName: getServiceName(serviceType, serviceId),
-        checkIn: checkIn || undefined,
-        checkOut: checkOut || undefined,
-        participants,
-        rooms: serviceType === 'hotel' ? rooms : undefined,
-        totalAmount: calculateAmount(serviceType, participants, rooms),
-        currency: 'USD',
-        description: getServiceDescription(serviceType, serviceId),
-        image: getServiceImage(serviceType, serviceId)
-      }
-      setBookingData(mockData)
-    }
-  }, [searchParams])
+  //   if (serviceType && serviceId) {
+  //     // Simular datos del servicio (en producción vendría de la API)
+  //     const mockData: BookingData = {
+  //       serviceType,
+  //       serviceId,
+  //       serviceName: getServiceName(serviceType, serviceId),
+  //       checkIn: checkIn || undefined,
+  //       checkOut: checkOut || undefined,
+  //       participants,
+  //       rooms: serviceType === 'hotel' ? rooms : undefined,
+  //       totalAmount: calculateAmount(serviceType, participants, rooms),
+  //       currency: 'USD',
+  //       description: getServiceDescription(serviceType, serviceId),
+  //       image: getServiceImage(serviceType, serviceId)
+  //     }
+  //     setBookingData(mockData)
+  //   }
+  // }, [searchParams])
 
   const getServiceName = (type: string, id: string) => {
     const names = {

@@ -485,7 +485,7 @@ export function AvailabilityCalendar({
                 ✅ Fechas seleccionadas: <strong>{selectedCheckIn}</strong> a <strong>{selectedCheckOut}</strong>
               </p>
               <p className="text-xs">
-                Haz clic en una fecha seleccionada o usa "Limpiar Fechas" para deseleccionar
+                Haz clic en una fecha seleccionada o usa &quot;Limpiar Fechas&quot; para deseleccionar
               </p>
             </div>
           ) : (

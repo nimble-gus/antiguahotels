@@ -23,20 +23,20 @@ export async function getSetting(key: string, defaultValue?: any): Promise<any> 
     }
 
     // Convertir valor según el tipo
-    let value = setting.settingValue
+    let value: any = setting.settingValue
     switch (setting.dataType) {
       case 'INTEGER':
-        value = parseInt(setting.settingValue)
+        value = parseInt(setting.settingValue || '0', 10)
         break
       case 'DECIMAL':
-        value = parseFloat(setting.settingValue)
+        value = parseFloat(setting.settingValue || '0')
         break
       case 'BOOLEAN':
         value = setting.settingValue === 'true'
         break
       case 'JSON':
         try {
-          value = JSON.parse(setting.settingValue)
+          value = JSON.parse(setting.settingValue || '{}')
         } catch {
           value = setting.settingValue
         }
@@ -68,23 +68,23 @@ export async function getSettingsByCategory(category: string): Promise<Record<st
 
     const result: Record<string, any> = {}
     
-    settings.forEach(setting => {
+    settings.forEach((setting: any) => {
       const key = setting.settingKey.replace(`${category}.`, '')
       
-      let value = setting.settingValue
+      let value: any = setting.settingValue
       switch (setting.dataType) {
         case 'INTEGER':
-          value = parseInt(setting.settingValue)
+          value = parseInt(setting.settingValue || '0', 10)
           break
         case 'DECIMAL':
-          value = parseFloat(setting.settingValue)
+          value = parseFloat(setting.settingValue || '0')
           break
         case 'BOOLEAN':
           value = setting.settingValue === 'true'
           break
         case 'JSON':
           try {
-            value = JSON.parse(setting.settingValue)
+            value = JSON.parse(setting.settingValue || '{}')
           } catch {
             value = setting.settingValue
           }
@@ -103,7 +103,7 @@ export async function getSettingsByCategory(category: string): Promise<Record<st
 }
 
 // Función para establecer una configuración
-export async function setSetting(key: string, value: any, dataType: string = 'STRING', description?: string): Promise<boolean> {
+export async function setSetting(key: string, value: any, dataType: 'STRING' | 'INTEGER' | 'DECIMAL' | 'BOOLEAN' | 'JSON' = 'STRING', description?: string): Promise<boolean> {
   try {
     let valueToStore = value
     if (dataType === 'JSON') {
@@ -116,13 +116,13 @@ export async function setSetting(key: string, value: any, dataType: string = 'ST
       where: { settingKey: key },
       update: {
         settingValue: valueToStore,
-        dataType,
+        dataType: dataType as any,
         description
       },
       create: {
         settingKey: key,
         settingValue: valueToStore,
-        dataType,
+        dataType: dataType as any,
         description,
         isPublic: false
       }
@@ -203,6 +203,7 @@ export function clearSettingsCache(): void {
   cacheTimestamp = 0
   console.log('🗑️ Settings cache cleared')
 }
+
 
 
 
