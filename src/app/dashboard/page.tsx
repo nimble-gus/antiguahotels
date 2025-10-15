@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  Calendar, 
+  Calendar,
   Users, 
   DollarSign, 
-  TrendingUp, 
   Hotel, 
   MapPin,
   Package,
@@ -199,36 +198,6 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acciones Rápidas</CardTitle>
-          <CardDescription>
-            Tareas comunes del sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <Calendar className="h-8 w-8 text-blue-500 mb-2" />
-              <h3 className="font-medium">Nueva Reservación</h3>
-              <p className="text-sm text-gray-500">Crear reservación manual</p>
-            </button>
-            
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <Hotel className="h-8 w-8 text-green-500 mb-2" />
-              <h3 className="font-medium">Agregar Hotel</h3>
-              <p className="text-sm text-gray-500">Registrar nuevo hotel</p>
-            </button>
-            
-            <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <TrendingUp className="h-8 w-8 text-purple-500 mb-2" />
-              <h3 className="font-medium">Ver Reportes</h3>
-              <p className="text-sm text-gray-500">Análisis detallado</p>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

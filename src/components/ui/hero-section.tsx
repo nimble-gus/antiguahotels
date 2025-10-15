@@ -59,10 +59,10 @@ export default function HeroSection({
   }] : [])
 
   const heightClasses = {
-    sm: 'h-64 md:h-80',
-    md: 'h-80 md:h-96',
-    lg: 'h-96 md:h-[500px]',
-    xl: 'h-[500px] md:h-[600px]'
+    sm: 'h-64 sm:h-80 md:h-96',
+    md: 'h-80 sm:h-96 md:h-[500px]',
+    lg: 'h-96 sm:h-[500px] md:h-[600px] lg:h-[700px]',
+    xl: 'h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px]'
   }
 
   // Auto-slide functionality
@@ -91,9 +91,9 @@ export default function HeroSection({
   if (heroImages.length === 0) {
     return (
       <section className={`relative ${heightClasses[height]} flex items-center justify-center bg-gradient-to-r from-antigua-purple to-antigua-pink`}>
-        <div className="text-center text-white">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">{title}</h1>
-          {description && <p className="text-xl">{description}</p>}
+        <div className="text-center text-white px-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">{title}</h1>
+          {description && <p className="text-lg sm:text-xl md:text-2xl max-w-4xl mx-auto leading-relaxed">{description}</p>}
         </div>
       </section>
     )
@@ -135,8 +135,8 @@ export default function HeroSection({
                 style={{ width: '100vw' }}
                 onClick={() => !isActive && goToSlide(index)}
               >
-                {/* Imagen Izquierda (Preview) */}
-                <div className={`relative ${heightClasses[height]} flex-1 z-10 rounded-r-2xl md:rounded-r-3xl overflow-hidden shadow-xl opacity-70 hover:opacity-90 cursor-pointer`}>
+                {/* Imagen Izquierda (Preview) - Hidden on mobile */}
+                <div className={`relative ${heightClasses[height]} flex-1 z-10 rounded-r-2xl md:rounded-r-3xl overflow-hidden shadow-xl opacity-70 hover:opacity-90 cursor-pointer hidden sm:block`}>
                   <Image
                     src={heroImages[(index - 1 + heroImages.length) % heroImages.length].imageUrl}
                     alt={heroImages[(index - 1 + heroImages.length) % heroImages.length].title}
@@ -152,7 +152,7 @@ export default function HeroSection({
                 </div>
 
                 {/* Imagen Central (Principal) */}
-                <div className={`relative ${heightClasses[height]} w-[60vw] md:w-[55vw] lg:w-[50vw] z-20 mx-4 md:mx-6 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl`}>
+                <div className={`relative ${heightClasses[height]} w-[90vw] sm:w-[60vw] md:w-[55vw] lg:w-[50vw] z-20 mx-2 sm:mx-4 md:mx-6 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl`}>
                   <Image
                     src={image.imageUrl}
                     alt={image.title}
@@ -170,31 +170,31 @@ export default function HeroSection({
                   {/* Content only on active image */}
                   {isActive && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
-                      <div className="container mx-auto px-4 text-center text-white">
+                      <div className="container mx-auto px-4 sm:px-6 text-center text-white">
                         <div className="max-w-4xl mx-auto">
                           {subtitle && (
-                            <p className="text-lg md:text-xl text-antigua-yellow font-medium mb-4">
+                            <p className="text-sm sm:text-lg md:text-xl text-antigua-yellow font-medium mb-3 sm:mb-4">
                               {subtitle}
                             </p>
                           )}
                           
-                          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight drop-shadow-lg">
+                          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight drop-shadow-lg">
                             {title}
                           </h1>
                           
                           {description && (
-                            <p className="text-base md:text-lg lg:text-xl text-gray-200 mb-8 leading-relaxed drop-shadow-md">
+                            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 mb-6 sm:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
                               {description}
                             </p>
                           )}
                           
                           {/* Action Buttons */}
                           {(primaryButton || secondaryButton) && (
-                            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 justify-center items-center px-2">
                               {primaryButton && (
                                 <a 
                                   href={primaryButton.href}
-                                  className="group relative inline-flex items-center justify-center px-8 md:px-10 py-4 text-base md:text-lg font-semibold text-white bg-gradient-to-r from-antigua-purple to-antigua-pink rounded-full shadow-2xl hover:shadow-antigua-purple/50 transform hover:scale-105 transition-all duration-300 overflow-hidden"
+                                  className="group relative inline-flex items-center justify-center px-6 sm:px-8 md:px-10 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-semibold text-white bg-gradient-to-r from-antigua-purple to-antigua-pink rounded-full shadow-2xl hover:shadow-antigua-purple/50 transform hover:scale-105 transition-all duration-300 overflow-hidden w-full sm:w-auto min-w-[200px] sm:min-w-0"
                                 >
                                   {/* Animated background */}
                                   <div className="absolute inset-0 bg-gradient-to-r from-antigua-pink to-antigua-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -202,16 +202,16 @@ export default function HeroSection({
                                   {/* Shimmer effect */}
                                   <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-pulse"></div>
                                   
-                                  <div className="relative flex items-center">
+                                  <div className="relative flex items-center justify-center">
                                     {primaryButton.icon && (
-                                      <span className="mr-3 transform group-hover:scale-110 transition-transform duration-300">
+                                      <span className="mr-2 sm:mr-3 transform group-hover:scale-110 transition-transform duration-300">
                                         {primaryButton.icon}
                                       </span>
                                     )}
-                                    <span className="relative">
+                                    <span className="relative text-center">
                                       {primaryButton.text}
                                     </span>
-                                    <ArrowRight className="ml-3 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+                                    <ArrowRight className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                                   </div>
                                 </a>
                               )}
@@ -219,7 +219,7 @@ export default function HeroSection({
                               {secondaryButton && (
                                 <a 
                                   href={secondaryButton.href}
-                                  className="group relative inline-flex items-center justify-center px-8 md:px-10 py-4 text-base md:text-lg font-semibold text-white border-2 border-white/80 rounded-full backdrop-blur-md bg-white/10 hover:bg-white hover:text-gray-900 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
+                                  className="group relative inline-flex items-center justify-center px-6 sm:px-8 md:px-10 py-3 sm:py-4 text-sm sm:text-base md:text-lg font-semibold text-white border-2 border-white/80 rounded-full backdrop-blur-md bg-white/10 hover:bg-white hover:text-gray-900 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden w-full sm:w-auto min-w-[200px] sm:min-w-0"
                                 >
                                   {/* Glass morphism background */}
                                   <div className="absolute inset-0 bg-white/20 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -227,16 +227,16 @@ export default function HeroSection({
                                   {/* Border glow effect */}
                                   <div className="absolute inset-0 rounded-full border-2 border-antigua-yellow/0 group-hover:border-antigua-yellow/50 transition-all duration-300"></div>
                                   
-                                  <div className="relative flex items-center">
+                                  <div className="relative flex items-center justify-center">
                                     {secondaryButton.icon && (
-                                      <span className="mr-3 transform group-hover:scale-110 transition-transform duration-300">
+                                      <span className="mr-2 sm:mr-3 transform group-hover:scale-110 transition-transform duration-300">
                                         {secondaryButton.icon}
                                       </span>
                                     )}
-                                    <span className="relative group-hover:text-gray-900 transition-colors duration-300">
+                                    <span className="relative group-hover:text-gray-900 transition-colors duration-300 text-center">
                                       {secondaryButton.text}
                                     </span>
-                                    <ArrowRight className="ml-3 h-5 w-5 transform group-hover:translate-x-1 group-hover:text-gray-900 transition-all duration-300" />
+                                    <ArrowRight className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 transform group-hover:translate-x-1 group-hover:text-gray-900 transition-all duration-300" />
                                   </div>
                                 </a>
                               )}
@@ -248,8 +248,8 @@ export default function HeroSection({
                   )}
                 </div>
 
-                {/* Imagen Derecha (Preview) */}
-                <div className={`relative ${heightClasses[height]} flex-1 z-10 rounded-l-2xl md:rounded-l-3xl overflow-hidden shadow-xl opacity-70 hover:opacity-90 cursor-pointer`}>
+                {/* Imagen Derecha (Preview) - Hidden on mobile */}
+                <div className={`relative ${heightClasses[height]} flex-1 z-10 rounded-l-2xl md:rounded-l-3xl overflow-hidden shadow-xl opacity-70 hover:opacity-90 cursor-pointer hidden sm:block`}>
                   <Image
                     src={heroImages[(index + 1) % heroImages.length].imageUrl}
                     alt={heroImages[(index + 1) % heroImages.length].title}
@@ -273,28 +273,28 @@ export default function HeroSection({
           <>
             <button
               onClick={goToPrevSlide}
-              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white p-2 md:p-3 rounded-full transition-all duration-200 shadow-lg"
+              className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white p-2 sm:p-3 rounded-full transition-all duration-200 shadow-lg"
             >
-              <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </button>
             <button
               onClick={goToNextSlide}
-              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white p-2 md:p-3 rounded-full transition-all duration-200 shadow-lg"
+              className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white p-2 sm:p-3 rounded-full transition-all duration-200 shadow-lg"
             >
-              <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </button>
           </>
         )}
 
         {/* Dots Indicator */}
         {heroImages.length > 1 && (
-          <div className="flex justify-center mt-12 mb-8 z-20">
-            <div className="flex space-x-3 bg-black bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full">
+          <div className="flex justify-center mt-8 sm:mt-12 mb-6 sm:mb-8 z-20">
+            <div className="flex space-x-2 sm:space-x-3 bg-black bg-opacity-20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-full">
               {heroImages.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
+                  className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
                     index === currentSlide 
                       ? 'bg-white scale-125 shadow-lg' 
                       : 'bg-white bg-opacity-50 hover:bg-opacity-75 hover:scale-110'
@@ -307,7 +307,7 @@ export default function HeroSection({
 
         {/* Slide Counter */}
         {heroImages.length > 1 && (
-          <div className="absolute top-4 right-4 z-30 bg-black bg-opacity-30 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs md:text-sm font-medium">
+          <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-30 bg-black bg-opacity-30 backdrop-blur-sm text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
             {currentSlide + 1} / {heroImages.length}
           </div>
         )}

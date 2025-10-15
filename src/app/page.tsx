@@ -398,46 +398,46 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section - Modern & Impactful */}
-      <section className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden">
         {/* Background with animated gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-antigua-purple via-purple-600 to-antigua-pink">
           <div className="absolute inset-0 bg-black/10"></div>
           {/* Animated background elements */}
-          <div className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-48 h-48 sm:w-80 sm:h-80 bg-yellow-300/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-0 left-1/4 w-32 h-32 sm:w-64 sm:h-64 md:w-96 md:h-96 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-24 h-24 sm:w-48 sm:h-48 md:w-80 md:h-80 bg-yellow-300/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
         </div>
         
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 text-center">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center">
           {/* Main content with glass morphism effect */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 max-w-4xl mx-auto border border-white/20 shadow-2xl">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 max-w-5xl mx-auto border border-white/20 shadow-2xl">
             {/* Title with enhanced typography */}
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 text-white leading-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 text-white leading-tight">
               <span className="bg-gradient-to-r from-white via-yellow-200 to-white bg-clip-text text-transparent">
                 {t('home.cta.title')}
               </span>
             </h2>
             
             {/* Description with better spacing */}
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-12 max-w-3xl mx-auto text-white/90 leading-relaxed font-light px-2">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-6 sm:mb-8 md:mb-12 max-w-4xl mx-auto text-white/90 leading-relaxed font-light px-1 sm:px-2">
               {t('home.cta.description')}
             </p>
             
             {/* Modern buttons with enhanced styling */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 justify-center items-center px-2">
               {/* Primary CTA Button */}
               <Button 
                 asChild
                 size="lg"
-                className="group relative bg-white text-antigua-purple hover:bg-yellow-300 hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 shadow-2xl border-0 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl sm:rounded-2xl overflow-hidden w-full sm:w-auto"
+                className="group relative bg-white text-antigua-purple hover:bg-yellow-300 hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 shadow-2xl border-0 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-sm sm:text-base md:text-lg font-semibold rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden w-full sm:w-auto min-w-[200px] sm:min-w-0"
               >
                 <Link href="/booking" className="flex items-center justify-center">
                   {/* Shimmer effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                   
-                  <Calendar className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:rotate-12" />
+                  <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 transition-transform duration-300 group-hover:rotate-12" />
                   {t('home.cta.book_now')}
-                  <ArrowRight className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 sm:ml-3 h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </Button>
               
@@ -446,31 +446,31 @@ export default function HomePage() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="group relative border-2 border-white text-white hover:bg-white hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 backdrop-blur-sm px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl sm:rounded-2xl overflow-hidden bg-white/5 hover:bg-white w-full sm:w-auto"
+                className="group relative border-2 border-white text-white hover:bg-white hover:text-antigua-purple transform hover:scale-105 transition-all duration-300 backdrop-blur-sm px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-sm sm:text-base md:text-lg font-semibold rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden bg-white/5 hover:bg-white w-full sm:w-auto min-w-[200px] sm:min-w-0"
               >
                 <Link href="/contact" className="flex items-center justify-center">
                   {/* Shimmer effect for secondary button */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                   
-                  <Phone className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:scale-110" />
+                  <Phone className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 transition-transform duration-300 group-hover:scale-110" />
                   {t('home.cta.contact')}
                 </Link>
               </Button>
             </div>
             
             {/* Trust indicators */}
-            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-white/70 text-xs sm:text-sm">
-              <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>{t('home.cta.trust.secure')}</span>
+            <div className="mt-6 sm:mt-8 md:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 text-white/70 text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                <span className="text-xs sm:text-sm">{t('home.cta.trust.secure')}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>{t('home.cta.trust.flexible')}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                <span className="text-xs sm:text-sm">{t('home.cta.trust.flexible')}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-300" />
-                <span>{t('home.cta.trust.reviews')}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Star className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-yellow-300" />
+                <span className="text-xs sm:text-sm">{t('home.cta.trust.reviews')}</span>
               </div>
             </div>
           </div>
