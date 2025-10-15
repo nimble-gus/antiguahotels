@@ -19,3 +19,4 @@ $content | mysql -u root -p$plainPassword
 
 Write-Host "¡Base de datos configurada exitosamente!" -ForegroundColor Green
 
+

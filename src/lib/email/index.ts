@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 import { render } from '@react-email/render'
 import { prisma } from '@/lib/prisma'
 import ReservationConfirmation from './templates/reservation-confirmation'
-import NewReservationAdmin from './templates/new-reservation-admin'
+import NewReservationAdminSimple from './templates/new-reservation-admin-simple'
 import PaymentConfirmation from './templates/payment-confirmation'
 import TestSimple from './templates/test-simple'
 
@@ -113,7 +113,7 @@ export async function sendEmail({
 // Registry de templates estático
 const templateRegistry = {
   'reservation-confirmation': ReservationConfirmation,
-  'new-reservation-admin': NewReservationAdmin,
+  'new-reservation-admin': NewReservationAdminSimple,
   'payment-confirmation': PaymentConfirmation,
   'test-simple': TestSimple,
 } as const

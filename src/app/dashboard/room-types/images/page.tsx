@@ -64,7 +64,7 @@ export default function RoomTypeImagesPage() {
     }
 
     loadRoomTypes()
-  }, [toast])
+  }, []) // Removido toast de las dependencias
 
   // Cargar imágenes cuando se selecciona un tipo de habitación
   const loadImages = async (roomTypeId: string) => {

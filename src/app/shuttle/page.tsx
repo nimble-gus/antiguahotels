@@ -24,6 +24,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useState, useEffect, useMemo } from 'react'
+import { PublicShuttleBookingForm } from '@/components/forms/public-shuttle-booking-form'
 
 interface Airport {
   id: string
@@ -122,6 +123,10 @@ export default function ShuttlePage() {
   const [selectedVehicleType, setSelectedVehicleType] = useState('')
   const [selectedDate, setSelectedDate] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  
+  // Estados para el modal de reservación
+  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [selectedRoute, setSelectedRoute] = useState<ShuttleRoute | null>(null)
 
   const loadRoutes = async (page = 1, search = '', direction = '', vehicleType = '', date = '') => {
     try {
@@ -174,6 +179,16 @@ export default function ShuttlePage() {
     setSelectedDate('')
     setCurrentPage(1)
     loadRoutes(1, '', '', '', '')
+  }
+
+  const handleReserve = (route: ShuttleRoute) => {
+    setSelectedRoute(route)
+    setShowBookingForm(true)
+  }
+
+  const handleBookingSuccess = (reservationId: string) => {
+    setShowBookingForm(false)
+    alert(`¡Reservación confirmada! Número: ${reservationId}`)
   }
 
   const getDirectionLabel = (direction: string) => {
@@ -473,7 +488,10 @@ export default function ShuttlePage() {
                       )}
 
                       {/* Botón de reserva */}
-                      <Button className="w-full">
+                      <Button 
+                        className="w-full bg-antigua-purple hover:bg-antigua-purple-dark"
+                        onClick={() => handleReserve(route)}
+                      >
                         <Calendar className="h-4 w-4 mr-2" />
                         Reservar Shuttle
                       </Button>
@@ -558,6 +576,15 @@ export default function ShuttlePage() {
             </div>
           )}
         </div>
+
+        {/* Modal de reservación */}
+        {showBookingForm && selectedRoute && (
+          <PublicShuttleBookingForm
+            shuttleRoute={selectedRoute}
+            onClose={() => setShowBookingForm(false)}
+            onSuccess={handleBookingSuccess}
+          />
+        )}
       </div>
     </PublicLayout>
   )

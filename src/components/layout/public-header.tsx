@@ -6,10 +6,12 @@ import Image from 'next/image'
 import { Menu, X, Phone, Mail, MapPin, Calendar, Globe, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { ServiceSelectionModal } from '@/components/modals/service-selection-modal'
 
 export default function PublicHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLanguageOpen, setIsLanguageOpen] = useState(false)
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false)
   const languageDropdownRef = useRef<HTMLDivElement>(null)
   
   // Usar el contexto de idioma
@@ -189,13 +191,11 @@ export default function PublicHeader() {
           {/* CTA Button */}
           <div className="hidden lg:flex items-center space-x-4">
             <Button 
-              asChild 
+              onClick={() => setIsServiceModalOpen(true)}
               className="bg-antigua-purple hover:bg-antigua-purple-dark text-white"
             >
-              <Link href="/booking">
-                <Calendar className="h-4 w-4 mr-2" />
-                {t('header.book_now')}
-              </Link>
+              <Calendar className="h-4 w-4 mr-2" />
+              {t('header.book_now')}
             </Button>
           </div>
 
@@ -228,19 +228,26 @@ export default function PublicHeader() {
               ))}
               <div className="pt-4">
                 <Button 
-                  asChild 
+                  onClick={() => {
+                    setIsServiceModalOpen(true)
+                    setIsMenuOpen(false)
+                  }}
                   className="w-full bg-antigua-purple hover:bg-antigua-purple-dark text-white"
                 >
-                  <Link href="/booking">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {t('header.book_now')}
-                  </Link>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {t('header.book_now')}
                 </Button>
               </div>
             </nav>
           </div>
         )}
       </div>
+
+      {/* Service Selection Modal */}
+      <ServiceSelectionModal 
+        isOpen={isServiceModalOpen}
+        onClose={() => setIsServiceModalOpen(false)}
+      />
     </header>
   )
 }

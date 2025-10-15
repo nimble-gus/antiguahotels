@@ -19,8 +19,8 @@ export async function GET(
       include: {
         activitySchedules: {
           where: {
-            date: { gte: new Date() },
-            availableSpots: { gt: 0 }
+            date: { gte: new Date() }
+            // Removido el filtro de availableSpots para mostrar todos los horarios
           },
           orderBy: [
             { date: 'asc' },
@@ -29,6 +29,8 @@ export async function GET(
         }
       }
     })
+
+    console.log(`🔍 Activity schedules found: ${activity?.activitySchedules?.length || 0}`)
 
     if (!activity) {
       return NextResponse.json(
@@ -86,6 +88,11 @@ export async function GET(
       availableSpots: schedule.availableSpots,
       maxSpots: schedule.maxSpots
     }))
+
+    console.log(`🔍 Formatted schedules: ${schedules.length}`)
+    if (schedules.length > 0) {
+      console.log(`🔍 First schedule:`, schedules[0])
+    }
 
     // Formatear amenidades
     const amenities = entityAmenities.map(ea => ({

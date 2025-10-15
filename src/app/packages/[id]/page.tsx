@@ -28,6 +28,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { PublicPackageBookingForm } from '@/components/forms/public-package-booking-form'
 
 interface PackageImage {
   id: string
@@ -120,6 +121,7 @@ export default function PackageDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedSession, setSelectedSession] = useState<PackageSession | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'hotels' | 'activities'>('overview')
+  const [showBookingForm, setShowBookingForm] = useState(false)
 
   useEffect(() => {
     const loadPackage = async () => {
@@ -130,10 +132,6 @@ export default function PackageDetailPage() {
         if (response.ok) {
           const data = await response.json()
           setPackageData(data)
-          // Seleccionar la primera sesión disponible por defecto
-          if (data.sessions.length > 0) {
-            setSelectedSession(data.sessions[0])
-          }
         } else if (response.status === 404) {
           setError('Paquete no encontrado')
         } else {
@@ -151,6 +149,22 @@ export default function PackageDetailPage() {
       loadPackage()
     }
   }, [params.id])
+
+  const handleReserve = () => {
+    console.log('🔍 handleReserve called:', { packageData: !!packageData, showBookingForm })
+    if (!packageData) {
+      console.log('❌ No packageData')
+      return
+    }
+    console.log('✅ Opening booking form')
+    setShowBookingForm(true)
+  }
+
+  const handleBookingSuccess = (reservationId: string) => {
+    setShowBookingForm(false)
+    alert(`¡Reservación confirmada! Número: ${reservationId}`)
+  }
+
 
   const getDifficultyInfo = (difficulty: string) => {
     return difficultyLevels[difficulty as keyof typeof difficultyLevels] || difficultyLevels.moderate
@@ -186,6 +200,7 @@ export default function PackageDetailPage() {
       )
     }
   }
+
 
   if (loading) {
     return (
@@ -490,50 +505,19 @@ export default function PackageDetailPage() {
                   </div>
                 </div>
 
-                {/* Sesiones disponibles */}
-                {packageData.sessions.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-3">Fechas disponibles</h3>
-                    <div className="space-y-2">
-                      {packageData.sessions.slice(0, 3).map((session) => (
-                        <div
-                          key={session.id}
-                          onClick={() => setSelectedSession(session)}
-                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                            selectedSession?.id === session.id
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="text-sm font-medium">
-                            {new Date(session.startTs).toLocaleDateString('es-ES', {
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(session.startTs).toLocaleDateString('es-ES', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })} - {new Date(session.endTs).toLocaleDateString('es-ES', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Botón de reserva principal */}
-                <Button className="w-full" size="lg">
+                <Button 
+                  className="w-full" 
+                  size="lg" 
+                  onClick={() => {
+                    console.log('🔍 Button clicked')
+                    handleReserve()
+                  }}
+                >
                   <Calendar className="h-5 w-5 mr-2" />
-                  Reservar paquete
+                  Reservar Paquete
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center mt-4">
@@ -544,8 +528,20 @@ export default function PackageDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {showBookingForm && packageData && (
+        <PublicPackageBookingForm
+          packageData={packageData}
+          onClose={() => setShowBookingForm(false)}
+          onSuccess={handleBookingSuccess}
+        />
+      )}
     </PublicLayout>
   )
 }
+
+
+
 
 

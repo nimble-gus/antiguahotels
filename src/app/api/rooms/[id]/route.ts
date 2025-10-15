@@ -33,6 +33,8 @@ export async function GET(
             name: true,
             baseRate: true,
             occupancy: true,
+            maxAdults: true,
+            maxChildren: true,
             bedConfiguration: true,
             description: true,
           }

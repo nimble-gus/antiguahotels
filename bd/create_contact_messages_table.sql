@@ -25,3 +25,4 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 -- Verificar que se creó correctamente
 DESCRIBE contact_messages;
 
+

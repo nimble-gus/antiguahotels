@@ -87,3 +87,6 @@ export async function generateHotelCode(name: string, city: string): Promise<str
 
 
 
+
+
+

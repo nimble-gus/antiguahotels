@@ -38,3 +38,4 @@ LEFT JOIN entity_images ei ON h.id = ei.entity_id AND ei.entity_type = 'HOTEL'
 WHERE h.is_active = 1 AND ei.id IS NULL
 ORDER BY h.name;
 
+

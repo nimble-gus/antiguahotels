@@ -51,3 +51,5 @@ export function useFooterSettings() {
   return { settings, loading, error }
 }
 
+
+

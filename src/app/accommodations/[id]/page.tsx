@@ -31,6 +31,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
+import { PublicBookingForm } from '@/components/forms/public-booking-form'
 
 // Interface para la habitación
 interface Room {
@@ -53,6 +54,8 @@ interface Room {
     name: string
     baseRate: string
     occupancy: number
+    maxAdults: number
+    maxChildren: number
     bedConfiguration?: string
     description?: string
     imageUrl?: string
@@ -82,9 +85,116 @@ export default function RoomDetailsPage() {
     checkOut: ''
   })
   const [guests, setGuests] = useState({
-    adults: 2,
+    adults: 1,
     children: 0
   })
+  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookingData, setBookingData] = useState<any>(null)
+  const [availabilityStatus, setAvailabilityStatus] = useState<'checking' | 'available' | 'unavailable' | 'not-selected'>('not-selected')
+  const [availabilityMessage, setAvailabilityMessage] = useState('')
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
+
+  // Validar capacidad de huéspedes
+  const validateGuestCapacity = () => {
+    if (!room) return true
+    const totalGuests = guests.adults + guests.children
+    const maxCapacity = room.roomType.maxAdults + room.roomType.maxChildren
+    return totalGuests <= maxCapacity
+  }
+
+  // Validar si se puede reservar
+  const canReserve = () => {
+    return validateGuestCapacity() && 
+           availabilityStatus === 'available' && 
+           selectedDates.checkIn && 
+           selectedDates.checkOut
+  }
+
+  // Obtener mensaje de error de capacidad
+  const getCapacityErrorMessage = () => {
+    if (!room) return ''
+    const totalGuests = guests.adults + guests.children
+    const maxCapacity = room.roomType.maxAdults + room.roomType.maxChildren
+    if (totalGuests > maxCapacity) {
+      return `La habitación tiene capacidad máxima de ${maxCapacity} huéspedes (${room.roomType.maxAdults} adultos + ${room.roomType.maxChildren} niños)`
+    }
+    return ''
+  }
+
+  // Validar fechas básicas
+  const validateDates = () => {
+    if (!selectedDates.checkIn || !selectedDates.checkOut) {
+      return { valid: false, message: 'Selecciona fechas de entrada y salida' }
+    }
+
+    const checkIn = new Date(selectedDates.checkIn)
+    const checkOut = new Date(selectedDates.checkOut)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (checkIn < today) {
+      return { valid: false, message: 'La fecha de entrada no puede ser en el pasado' }
+    }
+
+    if (checkIn >= checkOut) {
+      return { valid: false, message: 'La fecha de salida debe ser posterior a la de entrada' }
+    }
+
+    return { valid: true, message: '' }
+  }
+
+  // Verificar disponibilidad de fechas
+  const checkAvailability = async () => {
+    if (!room || !selectedDates.checkIn || !selectedDates.checkOut) {
+      setAvailabilityStatus('not-selected')
+      setAvailabilityMessage('')
+      return
+    }
+
+    // Validar fechas básicas primero
+    const dateValidation = validateDates()
+    if (!dateValidation.valid) {
+      setAvailabilityStatus('unavailable')
+      setAvailabilityMessage(dateValidation.message)
+      return
+    }
+
+    setIsCheckingAvailability(true)
+    setAvailabilityStatus('checking')
+    setAvailabilityMessage('Verificando disponibilidad...')
+
+    try {
+      const response = await fetch('/api/check-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomTypeId: room.roomTypeId,
+          checkInDate: selectedDates.checkIn,
+          checkOutDate: selectedDates.checkOut,
+          adults: guests.adults,
+          children: guests.children
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.available) {
+        setAvailabilityStatus('available')
+        setAvailabilityMessage('¡Fechas disponibles!')
+      } else {
+        setAvailabilityStatus('unavailable')
+        setAvailabilityMessage(data.message || 'No hay disponibilidad para estas fechas')
+      }
+    } catch (error) {
+      console.error('Error checking availability:', error)
+      setAvailabilityStatus('unavailable')
+      setAvailabilityMessage('Error verificando disponibilidad')
+    } finally {
+      setIsCheckingAvailability(false)
+    }
+  }
 
   // Cargar datos de la habitación usando la API del admin
   useEffect(() => {
@@ -114,6 +224,17 @@ export default function RoomDetailsPage() {
       loadRoomData()
     }
   }, [roomId])
+
+  // Verificar disponibilidad cuando cambien las fechas o huéspedes
+  useEffect(() => {
+    if (room && selectedDates.checkIn && selectedDates.checkOut) {
+      const timeoutId = setTimeout(() => {
+        checkAvailability()
+      }, 500) // Debounce de 500ms
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [selectedDates.checkIn, selectedDates.checkOut, guests.adults, guests.children, room])
 
   // Obtener icono de amenidad
   const getAmenityIcon = (iconName: string) => {
@@ -146,6 +267,54 @@ export default function RoomDetailsPage() {
     }
   }
 
+  const handleReserve = () => {
+    if (!room) return
+    
+    // Calcular precio total (por noche, no por huésped)
+    const baseRate = parseFloat(room.roomType.baseRate)
+    const nights = calculateNights(selectedDates.checkIn, selectedDates.checkOut)
+    const totalAmount = baseRate * nights
+    
+    setBookingData({
+      serviceType: 'ACCOMMODATION',
+      serviceId: room.hotel.id,
+      roomTypeId: room.roomType.id, // Agregar el ID del tipo de habitación
+      serviceName: `${room.hotel.name} - ${room.roomType.name}`,
+      checkIn: selectedDates.checkIn,
+      checkOut: selectedDates.checkOut,
+      participants: guests.adults + guests.children,
+      rooms: 1,
+      totalAmount: totalAmount,
+      currency: 'USD',
+      description: `Habitación ${room.roomType.name} en ${room.hotel.name}`,
+      image: room.images?.[0]?.imageUrl
+    })
+    
+    setShowBookingForm(true)
+  }
+
+  const calculateNights = (checkIn: string, checkOut: string) => {
+    if (!checkIn || !checkOut) return 0
+    const checkInDate = new Date(checkIn)
+    const checkOutDate = new Date(checkOut)
+    const diffTime = Math.abs(checkOutDate.getTime() - checkInDate.getTime())
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  }
+
+  // Calcular precio total para mostrar en el widget
+  const calculateTotalPrice = () => {
+    if (!room || !selectedDates.checkIn || !selectedDates.checkOut) return 0
+    const baseRate = parseFloat(room.roomType.baseRate)
+    const nights = calculateNights(selectedDates.checkIn, selectedDates.checkOut)
+    return baseRate * nights
+  }
+
+  const handleBookingSuccess = (reservationId: string) => {
+    setShowBookingForm(false)
+    // Aquí podrías mostrar una notificación de éxito o redirigir
+    alert(`¡Reservación confirmada! Número: ${reservationId}`)
+  }
+
   if (loading) {
     return (
       <PublicLayout>
@@ -176,11 +345,21 @@ export default function RoomDetailsPage() {
 
   return (
     <PublicLayout>
-      {/* Back Button */}
+      {/* Breadcrumb Navigation */}
       <div className="container mx-auto px-4 pt-8">
-        <Link href="/accommodations" className="inline-flex items-center gap-2 text-antigua-purple hover:text-antigua-purple-dark transition-colors">
+        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+          <Link href="/" className="hover:text-antigua-purple">Inicio</Link>
+          <span>/</span>
+          <Link href="/hotels" className="hover:text-antigua-purple">Hoteles</Link>
+          <span>/</span>
+          <Link href={`/hotels/${room.hotel.id}`} className="hover:text-antigua-purple">{room.hotel.name}</Link>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{room.roomType.name}</span>
+        </nav>
+        
+        <Link href={`/hotels/${room.hotel.id}`} className="inline-flex items-center gap-2 text-antigua-purple hover:text-antigua-purple-dark transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          Volver a Habitaciones
+          Volver a {room.hotel.name}
         </Link>
       </div>
 
@@ -212,10 +391,24 @@ export default function RoomDetailsPage() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-8">
                 <div className="text-right mb-4">
-                  <div className="text-3xl font-bold text-antigua-purple">
-                    ${parseFloat(room.roomType.baseRate)}
-                  </div>
-                  <div className="text-gray-600">por noche</div>
+                  {selectedDates.checkIn && selectedDates.checkOut ? (
+                    <>
+                      <div className="text-3xl font-bold text-antigua-purple">
+                        ${calculateTotalPrice().toFixed(2)}
+                      </div>
+                      <div className="text-gray-600">
+                        {calculateNights(selectedDates.checkIn, selectedDates.checkOut)} noche{calculateNights(selectedDates.checkIn, selectedDates.checkOut) !== 1 ? 's' : ''} 
+                        × ${parseFloat(room.roomType.baseRate)}/noche
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold text-antigua-purple">
+                        ${parseFloat(room.roomType.baseRate)}
+                      </div>
+                      <div className="text-gray-600">por noche</div>
+                    </>
+                  )}
                 </div>
 
                 <div className="space-y-4 mb-6">
@@ -229,7 +422,10 @@ export default function RoomDetailsPage() {
                         type="date"
                         value={selectedDates.checkIn}
                         onChange={(e) => setSelectedDates(prev => ({ ...prev, checkIn: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-antigua-purple focus:border-transparent"
+                        min={new Date().toISOString().split('T')[0]}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-antigua-purple focus:border-transparent ${
+                          availabilityStatus === 'unavailable' ? 'border-red-300' : 'border-gray-300'
+                        }`}
                       />
                     </div>
                     <div>
@@ -240,34 +436,157 @@ export default function RoomDetailsPage() {
                         type="date"
                         value={selectedDates.checkOut}
                         onChange={(e) => setSelectedDates(prev => ({ ...prev, checkOut: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-antigua-purple focus:border-transparent"
+                        min={selectedDates.checkIn || new Date().toISOString().split('T')[0]}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-antigua-purple focus:border-transparent ${
+                          availabilityStatus === 'unavailable' ? 'border-red-300' : 'border-gray-300'
+                        }`}
                       />
                     </div>
                   </div>
+
+                  {/* Availability Status */}
+                  {availabilityMessage && (
+                    <div className={`p-3 rounded-lg text-sm ${
+                      availabilityStatus === 'available' 
+                        ? 'bg-green-50 text-green-700 border border-green-200' 
+                        : availabilityStatus === 'unavailable'
+                        ? 'bg-red-50 text-red-700 border border-red-200'
+                        : availabilityStatus === 'checking'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'bg-gray-50 text-gray-700 border border-gray-200'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        {availabilityStatus === 'checking' && (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+                        )}
+                        {availabilityStatus === 'available' && (
+                          <CheckCircle className="h-4 w-4" />
+                        )}
+                        {availabilityStatus === 'unavailable' && (
+                          <Clock className="h-4 w-4" />
+                        )}
+                        <span>{availabilityMessage}</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Guests */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Huéspedes
                     </label>
-                    <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
-                      <div className="flex items-center gap-4">
+                    <div className="space-y-3">
+                      {/* Adults */}
+                      <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4" />
-                          <span className="text-sm">Adultos: {guests.adults}</span>
+                          <span className="text-sm font-medium">Adultos</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          <span className="text-sm">Niños: {guests.children}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setGuests(prev => ({ 
+                              ...prev, 
+                              adults: Math.max(1, prev.adults - 1) 
+                            }))}
+                            disabled={guests.adults <= 1}
+                            className="h-8 w-8 p-0"
+                          >
+                            -
+                          </Button>
+                          <span className="px-3 py-1 bg-gray-100 rounded-md min-w-[2rem] text-center text-sm">
+                            {guests.adults}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setGuests(prev => ({ 
+                              ...prev, 
+                              adults: Math.min(room?.roomType.maxAdults || 4, prev.adults + 1) 
+                            }))}
+                            disabled={guests.adults >= (room?.roomType.maxAdults || 4)}
+                            className="h-8 w-8 p-0"
+                          >
+                            +
+                          </Button>
                         </div>
                       </div>
+
+                      {/* Children */}
+                      <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          <span className="text-sm font-medium">Niños</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setGuests(prev => ({ 
+                              ...prev, 
+                              children: Math.max(0, prev.children - 1) 
+                            }))}
+                            disabled={guests.children <= 0}
+                            className="h-8 w-8 p-0"
+                          >
+                            -
+                          </Button>
+                          <span className="px-3 py-1 bg-gray-100 rounded-md min-w-[2rem] text-center text-sm">
+                            {guests.children}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setGuests(prev => ({ 
+                              ...prev, 
+                              children: Math.min(room?.roomType.maxChildren || 2, prev.children + 1) 
+                            }))}
+                            disabled={guests.children >= (room?.roomType.maxChildren || 2)}
+                            className="h-8 w-8 p-0"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Capacity Info */}
+                      {room && (
+                        <div className="text-xs text-gray-500 text-center">
+                          Capacidad máxima: {room.roomType.maxAdults} adultos, {room.roomType.maxChildren} niños
+                        </div>
+                      )}
+
+                      {/* Capacity Error Message */}
+                      {!validateGuestCapacity() && (
+                        <div className="text-xs text-red-500 text-center bg-red-50 p-2 rounded-md">
+                          {getCapacityErrorMessage()}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <Button className="w-full bg-antigua-purple hover:bg-antigua-purple-dark text-white py-3 text-lg font-semibold mb-4">
+                <Button 
+                  onClick={handleReserve}
+                  disabled={!canReserve()}
+                  className={`w-full py-3 text-lg font-semibold mb-4 ${
+                    canReserve() 
+                      ? 'bg-antigua-purple hover:bg-antigua-purple-dark text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
                   <Calendar className="mr-2 h-5 w-5" />
-                  Reservar Ahora
+                  {!selectedDates.checkIn || !selectedDates.checkOut 
+                    ? 'Selecciona Fechas' 
+                    : availabilityStatus === 'checking'
+                    ? 'Verificando...'
+                    : availabilityStatus === 'unavailable'
+                    ? 'No Disponible'
+                    : !validateGuestCapacity()
+                    ? 'Excede Capacidad'
+                    : 'Reservar Ahora'
+                  }
                 </Button>
 
                 <div className="text-center text-sm text-gray-600">
@@ -433,6 +752,15 @@ export default function RoomDetailsPage() {
           </div>
         </div>
       </section>
+
+      {/* Booking Modal */}
+      {showBookingForm && bookingData && (
+        <PublicBookingForm
+          bookingData={bookingData}
+          onClose={() => setShowBookingForm(false)}
+          onSuccess={handleBookingSuccess}
+        />
+      )}
     </PublicLayout>
   )
 }

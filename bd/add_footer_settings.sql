@@ -23,3 +23,5 @@ FROM system_settings
 WHERE setting_key LIKE 'company.footer_%' 
 ORDER BY setting_key;
 
+
+

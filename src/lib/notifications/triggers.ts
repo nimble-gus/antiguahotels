@@ -125,7 +125,7 @@ export async function onReservationCreated(reservationId: bigint) {
     
     // Enviar confirmación al huésped
     const guestEmailResult = await sendEmail({
-      to: reservation.guest.email,
+      to: reservation.guest.email || 'noreply@antiguahotels.com',
       subject: `✅ Confirmación de Reservación ${reservation.confirmationNumber}`,
       template: 'reservation-confirmation',
       data: guestEmailData,
@@ -199,7 +199,7 @@ export async function onPaymentConfirmed(paymentId: bigint) {
 
     // Enviar confirmación de pago al huésped
     const result = await sendEmail({
-      to: payment.reservation.guest.email,
+      to: payment.reservation.guest.email || 'noreply@antiguahotels.com',
       subject: `💳 Pago Confirmado - ${payment.reservation.confirmationNumber}`,
       template: 'payment-confirmation',
       data: emailData,
@@ -271,12 +271,12 @@ export async function onCheckInReminder(reservationId: bigint) {
       }) || '3:00 PM',
       roomType: accommodationStay.roomType.name,
       nights: accommodationStay.nights,
-      guests: accommodationStay.guests,
+      guests: 2, // Valor por defecto para check-in reminder
       dashboardUrl: process.env.DASHBOARD_URL
     }
 
     const result = await sendEmail({
-      to: reservation.guest.email,
+      to: reservation.guest.email || 'noreply@antiguahotels.com',
       subject: `🏨 Su llegada es mañana - ${accommodationStay.hotel.name}`,
       template: 'check-in-reminder',
       data: emailData,
@@ -296,12 +296,98 @@ export async function onCheckInReminder(reservationId: bigint) {
 
 // Funciones auxiliares para preparar datos de email
 async function prepareGuestEmailData(reservation: ReservationData) {
-  // Buscar el primer accommodation stay para obtener datos del hotel
-  const accommodationItem = reservation.reservationItems.find(
-    item => item.accommodationStay
-  )
+  // Buscar el primer item de reservación para obtener información del servicio
+  const firstItem = reservation.reservationItems[0]
+  
+  // Extraer información del hotel desde los metadatos si es una reservación de alojamiento
+  let hotelName = 'Servicio de Reservación'
+  let hotelAddress = ''
+  let hotelPhone = ''
+  let checkInDate = ''
+  let checkOutDate = ''
+  let nights = 0
+  let roomType = 'Servicio'
+  let guests = 1
 
-  const accommodationStay = accommodationItem?.accommodationStay
+  if (firstItem) {
+    if (firstItem.itemType === 'ACCOMMODATION') {
+      // Para alojamientos, usar accommodationStay si existe (reservaciones del dashboard)
+      if (firstItem.accommodationStay) {
+        hotelName = firstItem.accommodationStay.hotel.name
+        hotelAddress = firstItem.accommodationStay.hotel.address
+        hotelPhone = firstItem.accommodationStay.hotel.phone || ''
+        checkInDate = firstItem.accommodationStay.checkInDate.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+        checkOutDate = firstItem.accommodationStay.checkOutDate.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+        nights = firstItem.accommodationStay.nights
+        roomType = firstItem.accommodationStay.roomType.name
+        guests = firstItem.accommodationStay.guests
+      } else {
+        // Para reservaciones públicas, extraer datos de los metadatos
+        const meta = (firstItem as any).meta
+        hotelName = meta.hotelName || 'Hotel'
+        roomType = meta.roomTypeName || 'Habitación'
+        checkInDate = meta.checkIn ? new Date(meta.checkIn).toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }) : ''
+        checkOutDate = meta.checkOut ? new Date(meta.checkOut).toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }) : ''
+        nights = meta.nights || 0
+        guests = meta.adults || 1
+        
+        // Para reservaciones públicas, necesitamos obtener datos del hotel desde la base de datos
+        if (meta.hotelId) {
+          try {
+            const hotel = await prisma.hotel.findUnique({
+              where: { id: BigInt(meta.hotelId) },
+              select: {
+                name: true,
+                address: true,
+                phone: true
+              }
+            })
+            if (hotel) {
+              hotelName = hotel.name
+              hotelAddress = hotel.address || ''
+              hotelPhone = hotel.phone || ''
+            }
+          } catch (error) {
+            console.error('Error fetching hotel data:', error)
+          }
+        }
+      }
+    } else if (firstItem.itemType === 'ACTIVITY') {
+      hotelName = 'Actividad'
+      roomType = (firstItem as any).title || 'Actividad'
+      checkInDate = (reservation as any).checkin ? (reservation as any).checkin.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : ''
+    } else if (firstItem.itemType === 'PACKAGE') {
+      hotelName = 'Paquete'
+      roomType = (firstItem as any).title || 'Paquete'
+      checkInDate = (reservation as any).checkin ? (reservation as any).checkin.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : ''
+      nights = (firstItem as any).meta?.durationDays || 0
+      guests = (firstItem as any).meta?.participants || 1
+    }
+  }
 
   // Preparar servicios adicionales
   const reservationItems = reservation.reservationItems
@@ -311,43 +397,35 @@ async function prepareGuestEmailData(reservation: ReservationData) {
         return {
           type: 'ACTIVITY',
           name: item.activityBooking.activity.name,
-          amount: item.amount
+          amount: item.amount.toString()
         }
       }
       if (item.packageBooking) {
         return {
           type: 'PACKAGE',
           name: item.packageBooking.package.name,
-          amount: item.amount
+          amount: item.amount.toString()
         }
       }
       return {
         type: item.itemType,
         name: `Servicio ${item.itemType}`,
-        amount: item.amount
+        amount: item.amount.toString()
       }
     })
 
   return {
     guestName: `${reservation.guest.firstName} ${reservation.guest.lastName}`,
     confirmationNumber: reservation.confirmationNumber,
-    hotelName: accommodationStay?.hotel.name || 'Servicio de Reservación',
-    hotelAddress: accommodationStay?.hotel.address || '',
-    hotelPhone: accommodationStay?.hotel.phone || '',
-    checkInDate: accommodationStay?.checkInDate.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }) || '',
-    checkOutDate: accommodationStay?.checkOutDate.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }) || '',
-    nights: accommodationStay?.nights || 0,
-    roomType: accommodationStay?.roomType.name || 'Servicio',
-    guests: accommodationStay?.guests || 1,
-    totalAmount: reservation.totalAmount,
+    hotelName,
+    hotelAddress,
+    hotelPhone,
+    checkInDate,
+    checkOutDate,
+    nights,
+    roomType,
+    guests,
+    totalAmount: reservation.totalAmount.toString(),
     currency: reservation.currency,
     reservationItems,
     dashboardUrl: process.env.DASHBOARD_URL
@@ -355,31 +433,61 @@ async function prepareGuestEmailData(reservation: ReservationData) {
 }
 
 async function prepareAdminEmailData(reservation: ReservationData) {
-  const accommodationItem = reservation.reservationItems.find(
-    item => item.accommodationStay
-  )
-  const accommodationStay = accommodationItem?.accommodationStay
+  // Buscar el primer item de reservación para obtener información del servicio
+  const firstItem = reservation.reservationItems[0]
+  
+  // Extraer información del hotel desde los metadatos si es una reservación de alojamiento
+  let hotelName = 'Servicio de Reservación'
+  let roomType = 'Servicio'
+  let checkInDate = ''
+  let checkOutDate = ''
+  let nights = 0
+  let guests = 1
+
+  if (firstItem) {
+    if (firstItem.itemType === 'ACCOMMODATION') {
+      // Para alojamientos, usar accommodationStay si existe
+      if (firstItem.accommodationStay) {
+        hotelName = firstItem.accommodationStay.hotel.name
+        roomType = firstItem.accommodationStay.roomType.name
+        checkInDate = firstItem.accommodationStay.checkInDate.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+        checkOutDate = firstItem.accommodationStay.checkOutDate.toLocaleDateString('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+        nights = firstItem.accommodationStay.nights
+        guests = firstItem.accommodationStay.guests
+      } else {
+        // Fallback para reservaciones públicas
+        hotelName = 'Hotel'
+        roomType = 'Habitación'
+      }
+    } else if (firstItem.itemType === 'ACTIVITY') {
+      hotelName = 'Actividad'
+      roomType = 'Actividad'
+    } else if (firstItem.itemType === 'PACKAGE') {
+      hotelName = 'Paquete'
+      roomType = 'Paquete'
+    }
+  }
 
   return {
     confirmationNumber: reservation.confirmationNumber,
     guestName: `${reservation.guest.firstName} ${reservation.guest.lastName}`,
     guestEmail: reservation.guest.email,
     guestPhone: reservation.guest.phone || 'No proporcionado',
-    hotelName: accommodationStay?.hotel.name || 'Servicio de Reservación',
-    roomType: accommodationStay?.roomType.name || 'Servicio',
-    checkInDate: accommodationStay?.checkInDate.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }) || '',
-    checkOutDate: accommodationStay?.checkOutDate.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }) || '',
-    nights: accommodationStay?.nights || 0,
-    guests: accommodationStay?.guests || 1,
-    totalAmount: reservation.totalAmount,
+    hotelName,
+    roomType,
+    checkInDate,
+    checkOutDate,
+    nights,
+    guests,
+    totalAmount: reservation.totalAmount.toString(),
     currency: reservation.currency,
     paymentStatus: reservation.paymentStatus,
     source: reservation.source,
@@ -420,7 +528,7 @@ export async function scheduleCheckInReminders() {
 
     const reservations = await prisma.reservation.findMany({
       where: {
-        status: { in: ['CONFIRMED', 'PAID'] },
+        status: { in: ['CONFIRMED'] },
         reservationItems: {
           some: {
             accommodationStay: {

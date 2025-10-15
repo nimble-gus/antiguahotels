@@ -48,3 +48,4 @@ if (typeof window !== 'undefined') {
   console.log('Ejecuta este script en la consola del navegador')
 }
 
+

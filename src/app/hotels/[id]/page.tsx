@@ -524,13 +524,17 @@ export default function HotelDetailsPage() {
 
                           {/* Action Buttons */}
                           <div className="flex gap-3">
-                            <Button className="flex-1 bg-antigua-purple hover:bg-antigua-purple-dark text-white">
-                              <Calendar className="mr-2 h-4 w-4" />
-                              {t('hotels.book_now')}
-                            </Button>
-                            <Button variant="outline" className="px-6">
-                              <ArrowRight className="h-4 w-4" />
-                            </Button>
+                            <Link href={`/accommodations/${room.id}`} className="flex-1">
+                              <Button className="w-full bg-antigua-purple hover:bg-antigua-purple-dark text-white">
+                                <Bed className="mr-2 h-4 w-4" />
+                                Ver Detalles
+                              </Button>
+                            </Link>
+                            <Link href={`/accommodations/${room.id}`}>
+                              <Button variant="outline" className="px-6">
+                                <ArrowRight className="h-4 w-4" />
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                       </div>
