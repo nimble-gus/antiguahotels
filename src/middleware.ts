@@ -30,11 +30,11 @@ function isProtectedRoute(pathname: string): boolean {
   return protectedRoutes.some(path => pathname.startsWith(path))
 }
 
-// Middleware principal
-export default function middleware(request: NextRequest) {
+// Middleware principal que maneja modo mantenimiento
+function maintenanceMiddleware(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl
 
-  // Paso 1: Verificar modo de mantenimiento
+  // Verificar modo de mantenimiento
   if (isMaintenanceMode()) {
     // Si la ruta no está permitida, redirigir a mantenimiento
     if (!isAllowedPath(pathname)) {
@@ -42,49 +42,66 @@ export default function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/maintenance', request.url))
       }
     }
-    
-    // Si la ruta está permitida, continuar
-    // Pero si es una ruta protegida, aplicar autenticación
-    if (isProtectedRoute(pathname)) {
-      return withAuth(
-        function authMiddleware(req) {
-          return NextResponse.next()
-        },
-        {
-          callbacks: {
-            authorized: ({ token }) => {
+  }
+
+  return null
+}
+
+// Middleware con withAuth para rutas protegidas
+export default withAuth(
+  function middleware(req) {
+    const request = req as NextRequest
+    const { pathname } = request.nextUrl
+
+    // Primero verificar modo mantenimiento
+    const maintenanceResponse = maintenanceMiddleware(request)
+    if (maintenanceResponse) {
+      return maintenanceResponse
+    }
+
+    // Si llegamos aquí, continuar normalmente
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const pathname = req.nextUrl.pathname
+
+        // Verificar modo mantenimiento
+        if (isMaintenanceMode()) {
+          // Si la ruta está permitida en modo mantenimiento
+          if (isAllowedPath(pathname)) {
+            // Si es una ruta protegida, verificar token
+            if (isProtectedRoute(pathname)) {
               return !!token
             }
-          },
-        }
-      )(request)
-    }
-    
-    // Para otras rutas permitidas (como /maintenance, /auth), continuar
-    return NextResponse.next()
-  }
-
-  // Paso 2: Si no hay modo mantenimiento, aplicar autenticación a rutas protegidas
-  if (isProtectedRoute(pathname)) {
-    return withAuth(
-      function authMiddleware(req) {
-        return NextResponse.next()
-      },
-      {
-        callbacks: {
-          authorized: ({ token, req }) => {
-            if (token) return true
-            if (req.nextUrl.pathname.startsWith('/auth')) return true
-            return false
+            // Otras rutas permitidas (como /maintenance, /auth) están permitidas
+            return true
           }
-        },
-      }
-    )(request)
-  }
+          // Rutas no permitidas se redirigen en maintenanceMiddleware
+          // Permitir que el middleware continúe para hacer la redirección
+          return true
+        }
 
-  // Para todas las demás rutas, continuar normalmente
-  return NextResponse.next()
-}
+        // Si no hay modo mantenimiento, verificar autenticación para rutas protegidas
+        if (isProtectedRoute(pathname)) {
+          return !!token
+        }
+
+        // Permitir acceso a rutas públicas y páginas de auth
+        if (pathname.startsWith('/auth')) {
+          return true
+        }
+
+        // Permitir todas las demás rutas públicas
+        return true
+      }
+    },
+    pages: {
+      signIn: '/auth/signin',
+    }
+  }
+)
 
 export const config = {
   matcher: [
